@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>这段关系，正在滋养你，还是消耗你？</title>
+<style>
+:root {
+  --bg: #faf8f5;
+  --card: #ffffff;
+  --primary: #6b5b73;
+  --primary-light: #a89bb0;
+  --accent: #d4a574;
+  --accent-light: #f0dfc8;
+  --text: #3a3040;
+  --text-secondary: #7a7080;
+  --border: #e8e0ec;
+  --danger: #c47a7a;
+  --success: #7aaa8a;
+  --radius: 16px;
+  --shadow: 0 2px 16px rgba(90,70,100,0.08);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  min-height: 100vh;
+}
+.screen { display:none; min-height:100vh; }
+.screen.active { display:flex; flex-direction:column; align-items:center; }
+
+/* ---- Intro ---- */
+#intro {
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+}
+#intro .logo {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+#intro h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: .5rem;
+  max-width: 360px;
+}
+#intro .subtitle {
+  font-size: .95rem;
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+  max-width: 340px;
+}
+#intro .disclaimer {
+  font-size: .78rem;
+  color: var(--text-secondary);
+  max-width: 340px;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+  background: var(--accent-light);
+  padding: .8rem 1rem;
+  border-radius: var(--radius);
+  text-align: left;
+}
+
+/* ---- Stage Select ---- */
+.stage-select {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.stage-card {
+  flex: 1;
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem 1rem;
+  cursor: pointer;
+  transition: all .2s;
+  text-align: center;
+  max-width: 170px;
+}
+.stage-card:hover { border-color: var(--primary-light); }
+.stage-card:focus-visible, .q-option:focus-visible, .q-na:focus-visible, .btn:focus-visible {
+  outline: 3px solid rgba(107, 91, 115, .28);
+  outline-offset: 2px;
+}
+.stage-card.selected { border-color: var(--accent); background: var(--accent-light); }
+.stage-card .icon { font-size: 2rem; margin-bottom: .5rem; }
+.stage-card .label { font-weight: 600; font-size: .95rem; }
+.stage-card .desc { font-size: .8rem; color: var(--text-secondary); margin-top: .3rem; }
+
+/* ---- Buttons ---- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: .75rem 2rem;
+  border: none;
+  border-radius: 99px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+}
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+.btn-primary:hover { background: #5a4a62; }
+.btn-primary:disabled { background: var(--border); color: var(--text-secondary); cursor: default; }
+.btn-outline {
+  background: transparent;
+  color: var(--primary);
+  border: 1.5px solid var(--border);
+}
+.btn-outline:hover { border-color: var(--primary); }
+
+/* ---- Quiz ---- */
+#quiz { padding: 0; }
+.progress-bar-wrap {
+  width: 100%;
+  background: var(--border);
+  height: 4px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.progress-bar {
+  height: 100%;
+  background: var(--accent);
+  transition: width .3s ease;
+}
+.question-area {
+  width: 100%;
+  max-width: 560px;
+  padding: 2rem 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.q-number {
+  font-size: .8rem;
+  color: var(--primary-light);
+  margin-bottom: .3rem;
+}
+.q-stem {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 1.2rem;
+  line-height: 1.6;
+}
+.q-options { display: flex; flex-direction: column; gap: .7rem; }
+.q-option {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: .9rem 1.1rem;
+  cursor: pointer;
+  transition: all .2s;
+  font-size: .95rem;
+  line-height: 1.6;
+  position: relative;
+}
+.q-option:hover { border-color: var(--primary-light); background: #faf5fc; }
+.q-option.selected {
+  border-color: var(--accent);
+  background: var(--accent-light);
+}
+.q-option.selected::before {
+  content: '';
+  position: absolute;
+  left: .6rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.q-option .opt-letter {
+  display: inline-block;
+  width: 1.4rem;
+  height: 1.4rem;
+  line-height: 1.4rem;
+  text-align: center;
+  border-radius: 50%;
+  background: var(--border);
+  color: var(--text-secondary);
+  font-size: .75rem;
+  font-weight: 600;
+  margin-right: .5rem;
+  flex-shrink: 0;
+}
+.q-option.selected .opt-letter {
+  background: var(--accent);
+  color: #fff;
+}
+.q-na {
+  margin-top: .8rem;
+  min-height: 44px;
+  padding: .6rem .25rem;
+  font-size: .85rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  align-self: flex-start;
+}
+.q-na:hover { color: var(--primary); }
+.q-na.active { color: var(--accent); }
+.nav-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 1.5rem;
+}
+.nav-row .counter {
+  font-size: .85rem;
+  color: var(--text-secondary);
+}
+
+/* ---- Results ---- */
+#results { padding: 2rem 1.5rem; }
+.results-wrap {
+  max-width: 560px;
+  width: 100%;
+}
+.result-header {
+  text-align: left;
+  margin-bottom: 1rem;
+  padding: 1.7rem;
+  border-radius: 22px;
+  background: linear-gradient(145deg, #fff 0%, #f5ecdf 100%);
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(212, 165, 116, .28);
+}
+.result-header h2 {
+  font-size: .78rem;
+  letter-spacing: .12em;
+  color: var(--text-secondary);
+  margin-bottom: .65rem;
+}
+.result-header .result-type {
+  font-size: 1.65rem;
+  line-height: 1.35;
+  font-weight: 750;
+  color: var(--primary);
+  margin-bottom: .75rem;
+}
+.result-lead {
+  font-size: 1rem;
+  line-height: 1.8;
+  color: var(--text);
+}
+.result-kicker {
+  display: inline-block;
+  margin-top: .85rem;
+  padding: .3rem .7rem;
+  border-radius: 99px;
+  background: rgba(255,255,255,.72);
+  color: var(--primary);
+  font-size: .78rem;
+  font-weight: 600;
+}
+.story-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .75rem;
+}
+.story-panel {
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 1rem;
+}
+.story-panel .story-label {
+  font-size: .76rem;
+  color: var(--text-secondary);
+  margin-bottom: .3rem;
+}
+.story-panel strong {
+  display: block;
+  color: var(--primary);
+  font-size: .96rem;
+  margin-bottom: .35rem;
+}
+.story-panel p { color: var(--text-secondary); font-size: .86rem; }
+.evidence-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-top: .8rem;
+}
+.evidence-chip {
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  padding: .32rem .7rem;
+  font-size: .78rem;
+  color: var(--text-secondary);
+  background: #fff;
+}
+.result-boundary {
+  border-top: 1px solid var(--border);
+  margin-top: .9rem;
+  padding-top: .8rem;
+  color: var(--text-secondary);
+  font-size: .82rem;
+}
+
+.result-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+.result-card h3 {
+  font-size: 1rem;
+  color: var(--primary);
+  margin-bottom: .6rem;
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+}
+.result-card p, .result-card li {
+  font-size: .92rem;
+  line-height: 1.7;
+}
+.result-card ul {
+  padding-left: 1.2rem;
+  margin: .3rem 0;
+}
+
+/* dimension bars */
+.dim-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: .6rem;
+  font-size: .88rem;
+}
+.dim-label {
+  width: 100px;
+  flex-shrink: 0;
+  color: var(--text-secondary);
+}
+.dim-bar-wrap {
+  flex: 1;
+  height: 10px;
+  background: var(--border);
+  border-radius: 5px;
+  overflow: hidden;
+  margin: 0 .6rem;
+}
+.dim-bar {
+  height: 100%;
+  border-radius: 5px;
+  transition: width .6s ease;
+}
+.dim-val {
+  width: 36px;
+  text-align: right;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+/* source radar placeholder */
+.source-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .5rem;
+  margin-top: .5rem;
+}
+.source-item {
+  background: var(--bg);
+  border-radius: 10px;
+  padding: .7rem .8rem;
+  text-align: center;
+}
+.source-item.primary-source {
+  background: var(--accent-light);
+  border: 1.5px solid var(--accent);
+}
+.source-item .s-label { font-size: .82rem; color: var(--text-secondary); }
+.source-item .s-val { font-size: 1.1rem; font-weight: 700; color: var(--primary); }
+.source-item .s-tag {
+  font-size: .7rem;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 99px;
+  padding: .1rem .5rem;
+  margin-left: .3rem;
+}
+
+.safety-card {
+  background: #fdf0f0;
+  border: 1px solid #f0d0d0;
+  border-radius: var(--radius);
+  padding: 1rem 1.2rem;
+  margin-top: 1rem;
+}
+.safety-card h3 { color: var(--danger); font-size: .95rem; }
+.safety-card p { font-size: .88rem; color: #8a5050; }
+
+.disclaimer-result {
+  font-size: .78rem;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-top: 1.5rem;
+  line-height: 1.6;
+}
+
+.action-list li { margin-bottom: .3rem; }
+.signal-list li { margin-bottom: .2rem; color: var(--text-secondary); font-size: .9rem; }
+
+/* ---- Animations ---- */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp .4s ease both; }
+
+/* ---- Responsive ---- */
+@media (max-width: 480px) {
+  #intro h1 { font-size: 1.3rem; }
+  .stage-card { padding: 1rem .6rem; }
+  .q-stem { font-size: 1rem; }
+  .source-grid, .story-grid { grid-template-columns: 1fr; }
+  #results { padding: 1rem; }
+  .result-header { padding: 1.35rem; }
+  .result-header .result-type { font-size: 1.4rem; }
+  .dim-row { align-items: flex-start; }
+  .dim-label { width: 82px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ======== INTRO ======== -->
+<div id="intro" class="screen active">
+  <div class="logo">🌿</div>
+  <h1>这段关系，正在滋养你，还是消耗你？</h1>
+  <p class="subtitle">你舍不得的，是他，还是那个没有完成的结局？</p>
+  <div class="disclaimer">
+    本测试为自我觉察与娱乐内容，不构成心理、医疗、法律或关系决策建议。所有阈值均为首版产品规则，待真实认知访谈校准，不代表心理测量学效度。
+  </div>
+  <p style="font-size:.86rem;color:var(--text-secondary);max-width:340px;margin-bottom:1.2rem;text-align:left;">如果最近没有发生题目里的情况，请按目前的相处状态，选择你认为更可能出现的一项；确实无法判断时，可以选“不确定 / 不适用”。</p>
+  <p style="font-size:.92rem;color:var(--text-secondary);margin-bottom:1rem;">请选择你当前的关系状态：</p>
+  <div class="stage-select">
+    <div class="stage-card selected" data-stage="ongoing" role="button" tabindex="0" aria-pressed="true">
+      <div class="icon">🔄</div>
+      <div class="label">仍在关系中</div>
+      <div class="desc">你们目前仍在互动</div>
+    </div>
+    <div class="stage-card" data-stage="ended" role="button" tabindex="0" aria-pressed="false">
+      <div class="icon">🍂</div>
+      <div class="label">已经分开</div>
+      <div class="desc">关系已结束</div>
+    </div>
+  </div>
+  <button class="btn btn-primary" id="startBtn" disabled>开始测试</button>
+  <button class="btn btn-outline" style="margin-top:.7rem" onclick="importAnswers()">导入上次答案</button>
+  <p id="quizMeta" style="font-size:.78rem;color:var(--text-secondary);margin-top:.8rem;"></p>
+</div>
+
+<!-- ======== QUIZ ======== -->
+<div id="quiz" class="screen">
+  <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
+  <div class="question-area" id="questionArea"></div>
+</div>
+
+<!-- ======== RESULTS ======== -->
+<div id="results" class="screen">
+  <div class="results-wrap" id="resultsWrap"></div>
+</div>
+
+<script>const QUIZ_DATA_INLINE={"schemaVersion": "1.1","product": {"title": "这段关系，正在滋养你，还是消耗你？","subtitle": "你舍不得的，是他，还是那个没有完成的结局？","nature": "自我觉察与娱乐内容，不构成心理、医疗、法律或关系决策建议","scoringNotice": "所有阈值均为首版产品规则，待真实认知访谈校准；不代表心理测量学效度。"},"dimensions": {"relationship": {"reciprocity": {"label": "双方是否都在实际付出","rangePerOption": [-2,2]},"stability": {"label": "相处是否稳定、让你安心","rangePerOption": [-2,2]},"repair": {"label": "闹矛盾后能否一起解决","rangePerOption": [-2,2]},"selfPreservation": {"label": "你是否还能做自己","rangePerOption": [-2,2]}},"sources": {"memory": {"label": "过去的美好","resultId": "memory_supply"},"potential": {"label": "对未来变好的期待","resultId": "potential_wait","subtag": "unfinished"},"intermittent": {"label": "偶尔出现的热情和高光","resultId": "intermittent_reward"},"validation": {"label": "想确认自己被重视","resultId": "self_proof"},"loss": {"label": "害怕失去这段关系","resultId": "loss_fear"}},"publicModel": {"D1": "reciprocity（现实互惠投入，独立计分）","D2": "可持续性总维度（公开 stability、repair、selfPreservation 三子项）","D3": "memory","D4": "potential（含 unfinished 子标签）","D5": "intermittent","D6": "validation","D7": "loss"}},"rules": {"version": "首版产品规则 v1.1，待真实认知访谈校准","recentQuestionWeight": 1.25,"relationshipNormalization": "各子维度按已答题目的理论最小/最大加权分线性映射至 0..100；50 表示中点，不是人群常模。","sourceNormalization": "各来源按已答题目的理论最大加权分映射至 0..100；不是概率。","growthGate": {"reciprocityMin": 62,"stabilityMin": 62,"repairMin": 62,"selfPreservationMin": 58,"sustainabilityMin": 62,"maxStrongRiskAnswers": 2,"applicableStages": ["ongoing"],"endedNotApplicableReason": "ended_relationship_no_current_growth_judgment"},"source": {"prominentMin": 38,"tieGap": 5,"secondaryGap": 12,"maxPrimarySources": 2,"fallbackRule": "当所有来源均未达到 prominentMin 时，取最高分来源作为主结果；若最高分为 0 则输出 insufficient_answers。","fixedOrder": ["memory","potential","intermittent","validation","loss"],"fixedOrderNotice": "仅用于同分时确定性展示，不代表理论高低。","unfinishedEvidenceWeightMin": 2.0},"strongRiskAnswer": "任一关系子维度 <= -2 的已选选项","na": "仅展示 all 与当前阶段题；None 和字符串 NA 均不计分。场景外答案完全忽略。","growthIndependence": "双向生长由关系层门槛独立判定，不与五类留恋来源竞争；来源可主次、并列或不突出。","directionScoring": "情境四选项采用选项级直接方向计分，不做 Likert 反向换算；每题 directionCoverage 记录正负方向与位置分散。","coverage": {"totalAnsweredRatioMin": 0.7,"sourceAnsweredRatioMin": 0.7,"relationshipApplicableRatioMin": 0.65,"relationshipMinApplicableQuestions": 8,"allQuestionsShown": false,"naAllowed": true,"stagePolicy": "仅展示并计入 all 与当前阶段题；覆盖率分母按当前阶段实际适用题计算；场景外答案完全忽略；NA 不计分。"},"confidence": {"high": {"totalCoverageMin": 0.9,"sourceCoverageMin": 0.9,"sceneCoverageMin": 0.85,"primaryMarginMin": 12,"thresholdDistanceMin": 6},"medium": {"totalCoverageMin": 0.75,"sourceCoverageMin": 0.75,"sceneCoverageMin": 0.7,"primaryMarginMin": 6,"thresholdDistanceMin": 3},"explanation": "同时结合总答题覆盖、来源有效覆盖、适用场景覆盖、第一与第二来源分差及关键阈值接近度；任一层不足则降级。"}},"scoreKeys": {"relationship": ["reciprocity","stability","repair","selfPreservation"],"sources": ["memory","potential","intermittent","validation","loss"]},"questions": [{"id": "Q01","scene": "ongoing","recent": true,"purpose": "观察近期联系的可预期性与等待来源","ambiguity": "工作、照护责任或时差可能造成短期延迟，应结合对方是否提前说明。","stem": "最近一个月，当你发出一条需要对方回应的消息后，哪种情况最接近你的经历？","options": [{"id": "A","text": "对方大多会在可预期时间回应；忙时也会说明","r": {"reciprocity": 2,"stability": 2,"repair": 1,"selfPreservation": 1},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "B","text": "常隔很久才回，但偶尔一次特别热情会让我又有期待","r": {"reciprocity": -2,"stability": -2,"repair": -1,"selfPreservation": -1},"s": {"memory": 0,"potential": 1,"intermittent": 2,"validation": 1,"loss": 0}},{"id": "C","text": "已经不太联系，我主要靠回想过去理解这段关系","r": {"reciprocity": -1,"stability": -1,"repair": -1,"selfPreservation": 0},"s": {"memory": 2,"potential": 0,"intermittent": 0,"validation": 0,"loss": 1}},{"id": "D","text": "我会反复检查措辞，担心没回是因为自己不够好","r": {"reciprocity": -1,"stability": -1,"repair": 0,"selfPreservation": -2},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 2,"loss": 1}}],"relationshipApplicability": ["ongoing"],"sourceApplicable": true,"directionCoverage": {"method": "direct_option_scoring","positivePositions": ["A"],"negativePositions": ["B","C","D"],"sourceSignalPositions": ["B","C","D"]}},{"id": "Q02","scene": "all","recent": true,"purpose": "测量分歧后的修复过程","ambiguity": "有些人需要较长冷静时间；关键是是否约定回来处理。","stem": "最近一次不愉快之后，实际情况更接近？","options": [{"id": "A","text": "没有再谈，后来相处时双方都像这件事没发生过","r": {"reciprocity": -2,"stability": -1,"repair": -2,"selfPreservation": -1},"s": {"memory": 0,"potential": 1,"intermittent": 2,"validation": 0,"loss": 0}},{"id": "B","text": "我们各自冷静后回到问题，也谈了下次怎么做","r": {"reciprocity": 2,"stability": 1,"repair": 2,"selfPreservation": 1},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "C","text": "我先道歉或退让，只想避免关系真的结束","r": {"reciprocity": -1,"stability": 0,"repair": -1,"selfPreservation": -2},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 1,"loss": 2}},{"id": "D","text": "当时没有谈清楚，但对方说以后会慢慢改变","r": {"reciprocity": -1,"stability": -1,"repair": -1,"selfPreservation": 0},"s": {"memory": 0,"potential": 2,"intermittent": 0,"validation": 0,"loss": 0}}],"relationshipApplicability": ["ongoing","ended"],"sourceApplicable": true,"directionCoverage": {"method": "direct_option_scoring","positivePositions": ["B"],"negativePositions": ["A","C","D"],"sourceSignalPositions": ["A","C","D"]}},{"id": "Q03","scene": "all","recent": false,"purpose": "区分现实行动与潜力投射","ambiguity": "重大变化确实需要时间，因此同时看小步行动。","stem": "当对方说“以后会不一样”时，你更常靠什么继续相信？","options": [{"id": "A","text": "对方已经有连续的小行动，我也能说出具体变化","r": {"reciprocity": 2,"stability": 2,"repair": 1,"selfPreservation": 1},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "B","text": "那幅未来很打动我，即使现在还没有太多变化","r": {"reciprocity": -1,"stability": -1,"repair": -1,"selfPreservation": 0},"s": {"memory": 0,"potential": 2,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "C","text": "过去有过好的阶段，所以我觉得对方还会变回那时的样子","r": {"reciprocity": -1,"stability": -1,"repair": 0,"selfPreservation": 0},"s": {"memory": 2,"potential": 1,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "D","text": "只要对方还愿意提未来，我就觉得自己没有被放弃","r": {"reciprocity": -1,"stability": -1,"repair": 0,"selfPreservation": -1},"s": {"memory": 0,"potential": 1,"intermittent": 0,"validation": 2,"loss": 1}}],"relationshipApplicability": ["ongoing","ended"],"sourceApplicable": true,"directionCoverage": {"method": "direct_option_scoring","positivePositions": ["A"],"negativePositions": ["B","D"],"sourceSignalPositions": ["B","C","D"]}},{"id": "Q04","scene": "ongoing","recent": true,"purpose": "观察现实互惠投入","ambiguity": "短期疾病或危机可使投入暂时不对称。","stem": "最近安排见面或一起做事时，实际情况通常更接近哪一种？","options": [{"id": "A","text": "多半是我提出和确认，对方较少主动推进","r": {"reciprocity": -2,"stability": -2,"repair": -1,"selfPreservation": -1},"s": {"memory": 0,"potential": 1,"intermittent": 1,"validation": 1,"loss": 0}},{"id": "B","text": "双方都会提出，也会把约定落实到时间和行动","r": {"reciprocity": 2,"stability": 2,"repair": 1,"selfPreservation": 1},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "C","text": "现在很少推进，但我常想起以前对方主动的时候","r": {"reciprocity": -1,"stability": -1,"repair": -1,"selfPreservation": 0},"s": {"memory": 2,"potential": 0,"intermittent": 0,"validation": 0,"loss": 1}},{"id": "D","text": "我不太敢提出，怕要求一多对方就离开","r": {"reciprocity": -1,"stability": -1,"repair": 0,"selfPreservation": -2},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 1,"loss": 2}}],"relationshipApplicability": ["ongoing"],"sourceApplicable": true,"directionCoverage": {"method": "direct_option_scoring","positivePositions": ["B"],"negativePositions": ["A","C","D"],"sourceSignalPositions": ["A","C","D"]}},{"id": "Q05","scene": "all","recent": false,"purpose": "测量边界表达与自我保全","ambiguity": "安全风险场景中不直接表达可能是保护策略。","stem": "当对方做了一件事让你不舒服时，你更常怎么做？","options": [{"id": "A","text": "我会先弄清自己的感受和需要，再找合适的时机告诉对方","r": {"reciprocity": 2,"stability": 1,"repair": 1,"selfPreservation": 2},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "B","text": "我会告诉自己对方本意不坏，以后会慢慢改变","r": {"reciprocity": -1,"stability": -1,"repair": -1,"selfPreservation": -1},"s": {"memory": 0,"potential": 2,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "C","text": "我会先忍住；对方偶尔对我好一些，我就不再提了","r": {"reciprocity": -2,"stability": -1,"repair": -2,"selfPreservation": -1},"s": {"memory": 0,"potential": 0,"intermittent": 2,"validation": 1,"loss": 0}},{"id": "D","text": "我担心表达后会失去关系，通常会压下自己的需要","r": {"reciprocity": -1,"stability": 0,"repair": -1,"selfPreservation": -2},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 1,"loss": 2}}],"relationshipApplicability": ["ongoing","ended"],"sourceApplicable": true,"directionCoverage": {"method": "direct_option_scoring","positivePositions": ["A"],"negativePositions": ["B","C","D"],"sourceSignalPositions": ["B","C","D"]}},{"id": "Q06","scene": "ended","recent": false,"purpose": "识别回忆牵引","ambiguity": "纪念过去本身不等于被过去困住。","stem": "想到已经结束的这段关系时，哪种情况更接近你现在的感受？","options": [{"id": "A","text": "某些特别好的旧片段，至今仍会让我心软","r": {"reciprocity": -1,"stability": -1,"repair": 0,"selfPreservation": 0},"s": {"memory": 2,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "B","text": "对方偶尔突然出现、关心或示好时，我仍会被触动","r": {"reciprocity": -2,"stability": -2,"repair": -1,"selfPreservation": -1},"s": {"memory": 0,"potential": 0,"intermittent": 2,"validation": 1,"loss": 0}},{"id": "C","text": "想到那些还没来得及实现的共同设想，我仍会觉得遗憾","r": {"reciprocity": -1,"stability": -1,"repair": 0,"selfPreservation": 0},"s": {"memory": 0,"potential": 2,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "D","text": "我能珍惜过去的美好，也会单独看待现在的实际情况","r": {"reciprocity": 2,"stability": 1,"repair": 1,"selfPreservation": 2},"s": {"memory": 1,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}}],"relationshipApplicability": ["ended"],"sourceApplicable": true,"directionCoverage": {"method": "direct_option_scoring","positivePositions": ["D"],"negativePositions": ["B"],"sourceSignalPositions": ["A","B","C","D"]}},{"id": "Q07","scene": "ongoing","recent": true,"purpose": "观察关系对日常功能与自我的影响","ambiguity": "睡眠变化也可能来自关系外压力。","stem": "最近一个月，这段关系对你的日常状态影响多大？","options": [{"id": "A","text": "基本没有打乱我的生活节奏","r": {"reciprocity": 0,"stability": 1,"repair": 0,"selfPreservation": 2},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "B","text": "偶尔会分心或情绪波动，但很快能恢复","r": {"reciprocity": 0,"stability": 0,"repair": 0,"selfPreservation": 1},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "C","text": "经常占据我的注意力，做事或休息也会受影响","r": {"reciprocity": -1,"stability": -1,"repair": 0,"selfPreservation": -1},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "D","text": "大部分时间都被它牵动，很难顾上原来的生活","r": {"reciprocity": -1,"stability": -2,"repair": 0,"selfPreservation": -2},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}}],"relationshipApplicability": ["ongoing"],"sourceApplicable": true,"directionCoverage": {"method": "direct_option_scoring","positivePositions": ["A"],"negativePositions": ["C","D"],"sourceSignalPositions": []}},{"id": "Q08","scene": "all","recent": false,"purpose": "识别未完成结局子标签","ambiguity": "需要正式告别是常见需要，不应病理化。","stem": "如果这段关系就停在现在，你最难以接受的是什么？","options": [{"id": "A","text": "那些共同计划还没有实现，我想知道再坚持一下会怎样","r": {"reciprocity": -1,"stability": 0,"repair": 0,"selfPreservation": -1},"s": {"memory": 0,"potential": 2,"intermittent": 0,"validation": 0,"loss": 1},"tags": ["unfinished"]},{"id": "B","text": "这仿佛证明了，我最终还是不值得被坚定地选择","r": {"reciprocity": -1,"stability": 0,"repair": 0,"selfPreservation": -2},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 2,"loss": 1}},{"id": "C","text": "我害怕失去熟悉的人，以及已经习惯的生活","r": {"reciprocity": -1,"stability": 0,"repair": 0,"selfPreservation": -1},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 2}},{"id": "D","text": "我会难过，但即使有些事没有答案，我也能继续自己的生活","r": {"reciprocity": 1,"stability": 1,"repair": 0,"selfPreservation": 2},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}}],"relationshipApplicability": ["ongoing","ended"],"sourceApplicable": true,"directionCoverage": {"method": "direct_option_scoring","positivePositions": ["D"],"negativePositions": ["B"],"sourceSignalPositions": ["A","B","C"]}},{"id": "Q09","scene": "ongoing","recent": true,"purpose": "测量承诺兑现的稳定性","ambiguity": "一次取消不能代表长期模式。","stem": "最近一个月，已经说好的事情发生变化时，哪种情况更接近你们？","options": [{"id": "A","text": "临时变化很频繁，但对方偶尔一次特别用心的表现，就会让我放下之前的失望","r": {"reciprocity": -2,"stability": -2,"repair": -1,"selfPreservation": -1},"s": {"memory": 0,"potential": 0,"intermittent": 2,"validation": 0,"loss": 0}},{"id": "B","text": "有变化时会尽早说明，我们也会一起商量可行的替代安排","r": {"reciprocity": 2,"stability": 2,"repair": 2,"selfPreservation": 1},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "C","text": "虽然经常发生变化，但我觉得忙过这段时间就会稳定下来","r": {"reciprocity": -1,"stability": -1,"repair": 0,"selfPreservation": 0},"s": {"memory": 0,"potential": 2,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "D","text": "我通常不会追问，担心显得难相处而被对方放弃","r": {"reciprocity": -2,"stability": -1,"repair": -1,"selfPreservation": -2},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 1,"loss": 2}}],"relationshipApplicability": ["ongoing"],"sourceApplicable": true,"directionCoverage": {"method": "direct_option_scoring","positivePositions": ["B"],"negativePositions": ["A","D"],"sourceSignalPositions": ["A","C","D"]}},{"id": "Q10","scene": "all","recent": false,"purpose": "观察被选择感与自我价值绑定","ambiguity": "希望承诺是合理需要，关键在是否吞没自我评价。","stem": "回想这段关系，当你不太确定自己在对方心里的位置时，什么最影响你的判断？","options": [{"id": "A","text": "对方平时怎么对我，以及会不会把我放进他的安排里","r": {"reciprocity": 1,"stability": 1,"repair": 0,"selfPreservation": 2},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "B","text": "对方有没有明确选择我、把我放在重要的位置","r": {"reciprocity": -1,"stability": 0,"repair": 0,"selfPreservation": -1},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 2,"loss": 0}},{"id": "C","text": "过去那些让我确定自己很重要的时刻","r": {"reciprocity": -1,"stability": -1,"repair": 0,"selfPreservation": 0},"s": {"memory": 2,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "D","text": "对方偶尔重新靠近、表现得很在意我的时候","r": {"reciprocity": -1,"stability": -2,"repair": 0,"selfPreservation": -1},"s": {"memory": 0,"potential": 0,"intermittent": 2,"validation": 0,"loss": 0}}],"relationshipApplicability": ["ongoing","ended"],"sourceApplicable": true,"directionCoverage": {"method": "direct_option_scoring","positivePositions": ["A"],"negativePositions": ["D"],"sourceSignalPositions": ["B","C","D"]}},{"id": "Q11","scene": "all","recent": true,"purpose": "观察支持的双向性","ambiguity": "短期资源差异可能影响支持方式。","stem": "回想这段关系，当你压力很大、需要支持时，哪种情况更常见？","options": [{"id": "A","text": "对方愿意听，也会问我需要陪伴还是实际帮助","r": {"reciprocity": 2,"stability": 2,"repair": 1,"selfPreservation": 2},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "B","text": "对方平时很少提供支持，但偶尔一次特别贴心，会让我记很久","r": {"reciprocity": -1,"stability": -2,"repair": 0,"selfPreservation": -1},"s": {"memory": 1,"potential": 0,"intermittent": 2,"validation": 0,"loss": 0}},{"id": "C","text": "我通常不会说，担心自己的需要会成为对方的负担","r": {"reciprocity": -1,"stability": 0,"repair": -1,"selfPreservation": -2},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 1,"loss": 2}},{"id": "D","text": "对方现在还无法给我需要的支持，但我相信以后会有所改变","r": {"reciprocity": -1,"stability": -1,"repair": -1,"selfPreservation": 0},"s": {"memory": 0,"potential": 2,"intermittent": 0,"validation": 0,"loss": 0}}],"relationshipApplicability": ["ongoing","ended"],"sourceApplicable": true,"directionCoverage": {"method": "direct_option_scoring","positivePositions": ["A"],"negativePositions": ["B","C","D"],"sourceSignalPositions": ["B","C","D"]}},{"id": "Q12","scene": "ended","recent": false,"purpose": "区分怀念对象与现实关系","ambiguity": "分手初期高频回忆属常见反应。","stem": "关系结束后，你想起这段关系时，通常会停在哪儿？","options": [{"id": "A","text": "一起经历过的具体片段，还有那时候的自己","r": {"reciprocity": 0,"stability": 0,"repair": 0,"selfPreservation": 0},"s": {"memory": 2,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "B","text": "如果当时换一种做法，结局会不会不一样","r": {"reciprocity": -1,"stability": 0,"repair": -1,"selfPreservation": -1},"s": {"memory": 0,"potential": 2,"intermittent": 0,"validation": 0,"loss": 0},"tags": ["unfinished"]},{"id": "C","text": "对方偶尔回头或联系时，我们是不是还有可能","r": {"reciprocity": -1,"stability": -1,"repair": 0,"selfPreservation": -1},"s": {"memory": 0,"potential": 0,"intermittent": 2,"validation": 0,"loss": 0}},{"id": "D","text": "会想起过去，但注意力也能慢慢回到现在的生活","r": {"reciprocity": 1,"stability": 1,"repair": 0,"selfPreservation": 2},"s": {"memory": 1,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}}],"relationshipApplicability": ["ended"],"sourceApplicable": true,"directionCoverage": {"method": "direct_option_scoring","positivePositions": ["D"],"negativePositions": ["B","C"],"sourceSignalPositions": ["A","B","C","D"]}},{"id": "Q13","scene": "ongoing","recent": true,"purpose": "测量冲突中的尊重与安全表达","ambiguity": "若有威胁或暴力，不鼓励当面对质。","stem": "最近你们意见不同时，哪种情况更接近你的经历？","options": [{"id": "A","text": "我大多能说完自己的观点；即使暂时谈不下去，之后也能继续","r": {"reciprocity": 2,"stability": 1,"repair": 2,"selfPreservation": 2},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "B","text": "我经常改口附和，担心对方因此疏远我","r": {"reciprocity": -2,"stability": -1,"repair": -1,"selfPreservation": -2},"s": {"memory": 0,"potential": 0,"intermittent": 1,"validation": 1,"loss": 2}},{"id": "C","text": "我很难说完自己的观点，但和好后短暂的甜蜜会让我不再追究","r": {"reciprocity": -2,"stability": -1,"repair": -2,"selfPreservation": -1},"s": {"memory": 0,"potential": 0,"intermittent": 2,"validation": 0,"loss": 0}},{"id": "D","text": "我现在还很难表达不同意见，但我相信对方以后会更愿意沟通","r": {"reciprocity": -1,"stability": -1,"repair": -1,"selfPreservation": -1},"s": {"memory": 0,"potential": 2,"intermittent": 0,"validation": 0,"loss": 0}}],"relationshipApplicability": ["ongoing"],"sourceApplicable": true,"directionCoverage": {"method": "direct_option_scoring","positivePositions": ["A"],"negativePositions": ["B","C","D"],"sourceSignalPositions": ["B","C","D"]}},{"id": "Q14","scene": "all","recent": false,"purpose": "识别失去恐惧与外部支持","ambiguity": "现实经济或照护依赖需要具体资源支持，不能简化为心理选择。","stem": "如果想象自己减少投入或彻底放下，最让你犹豫的是什么？","options": [{"id": "A","text": "我担心以后再也遇不到合适的人，也害怕独自生活","r": {"reciprocity": -1,"stability": 0,"repair": 0,"selfPreservation": -1},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 2}},{"id": "B","text": "如果对方转身选择了别人，我会觉得是自己输掉了","r": {"reciprocity": -1,"stability": 0,"repair": 0,"selfPreservation": -2},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 2,"loss": 1}},{"id": "C","text": "我会先考虑身边有哪些人可以帮助我、手头有哪些资源，以及这个决定会带来什么现实影响","r": {"reciprocity": 1,"stability": 1,"repair": 0,"selfPreservation": 2},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "D","text": "我舍不得那些最美好的时刻，担心以后不会再有相似的体验","r": {"reciprocity": -1,"stability": 0,"repair": 0,"selfPreservation": -1},"s": {"memory": 2,"potential": 0,"intermittent": 1,"validation": 0,"loss": 1}}],"relationshipApplicability": ["ongoing","ended"],"sourceApplicable": true,"directionCoverage": {"method": "direct_option_scoring","positivePositions": ["C"],"negativePositions": ["B"],"sourceSignalPositions": ["A","B","D"]}},{"id": "Q15","scene": "ongoing","recent": true,"purpose": "检查行动修复而非口头道歉","ambiguity": "不同人表达歉意方式不同，重点是后续行为。","stem": "最近一次对方的行为伤害到你并向你道歉后，哪种情况更接近实际？","options": [{"id": "A","text": "道歉时很诚恳，但类似的事情后来又发生了","r": {"reciprocity": -2,"stability": -1,"repair": -2,"selfPreservation": -1},"s": {"memory": 0,"potential": 1,"intermittent": 2,"validation": 0,"loss": 0}},{"id": "B","text": "对方能说清问题出在哪里，之后的行为也确实有所改变","r": {"reciprocity": 2,"stability": 2,"repair": 2,"selfPreservation": 1},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "C","text": "我很快就说没关系，担心继续追究会失去对方","r": {"reciprocity": -1,"stability": 0,"repair": -1,"selfPreservation": -2},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 1,"loss": 2}},{"id": "D","text": "比起问题有没有解决，我更在意对方主动来安慰我，因为这让我觉得自己仍然重要","r": {"reciprocity": -1,"stability": -1,"repair": -1,"selfPreservation": -1},"s": {"memory": 0,"potential": 0,"intermittent": 1,"validation": 2,"loss": 0}}],"relationshipApplicability": ["ongoing"],"sourceApplicable": true,"directionCoverage": {"method": "direct_option_scoring","positivePositions": ["B"],"negativePositions": ["A","C","D"],"sourceSignalPositions": ["A","C","D"]}},{"id": "Q16","scene": "all","recent": false,"purpose": "测量关系外身份保留","ambiguity": "共同兴趣增加不等于失去自我。","stem": "回看这段关系，它对你原有生活的影响更接近哪一种？","options": [{"id": "A","text": "我保留了重要的朋友、兴趣和独处空间，也能和对方协调相处时间","r": {"reciprocity": 2,"stability": 1,"repair": 1,"selfPreservation": 2},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "B","text": "我的很多安排都围着对方改变，自己的生活范围越来越小","r": {"reciprocity": -1,"stability": -1,"repair": 0,"selfPreservation": -2},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 1,"loss": 2}},{"id": "C","text": "虽然自己的生活范围越来越小，但想到过去一起做过的事，我仍会觉得很充实","r": {"reciprocity": -1,"stability": -1,"repair": 0,"selfPreservation": -1},"s": {"memory": 2,"potential": 0,"intermittent": 0,"validation": 0,"loss": 1}},{"id": "D","text": "我愿意暂时放下自己的一些需要，相信关系稳定后还能重新找回原来的生活","r": {"reciprocity": -1,"stability": -1,"repair": 0,"selfPreservation": -2},"s": {"memory": 0,"potential": 2,"intermittent": 0,"validation": 0,"loss": 1}}],"relationshipApplicability": ["ongoing","ended"],"sourceApplicable": true,"directionCoverage": {"method": "direct_option_scoring","positivePositions": ["A"],"negativePositions": ["B","C","D"],"sourceSignalPositions": ["B","C","D"]}},{"id": "Q17","scene": "ongoing","recent": true,"purpose": "观察忽冷忽热模式","ambiguity": "自然联系频率差异需结合双方约定。","stem": "最近四周，你们联系和相处的节奏更接近哪一种？","options": [{"id": "A","text": "联系和相处大体稳定，彼此都知道最近是什么状态","r": {"reciprocity": 1,"stability": 2,"repair": 0,"selfPreservation": 1},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "B","text": "有时密切、有时各忙各的，但彼此基本知道原因","r": {"reciprocity": 1,"stability": 1,"repair": 0,"selfPreservation": 1},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "C","text": "常常突然热络或突然冷下来，我很难判断接下来会怎样","r": {"reciprocity": -1,"stability": -2,"repair": 0,"selfPreservation": -1},"s": {"memory": 0,"potential": 0,"intermittent": 2,"validation": 0,"loss": 0}},{"id": "D","text": "最近联系很少，彼此的状态也不太明确","r": {"reciprocity": -1,"stability": -1,"repair": 0,"selfPreservation": 0},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}}],"relationshipApplicability": ["ongoing"],"sourceApplicable": true,"directionCoverage": {"method": "direct_option_scoring","positivePositions": ["A","B"],"negativePositions": ["C"],"sourceSignalPositions": ["C"]}},{"id": "Q18","scene": "all","recent": false,"purpose": "识别比较与价值确认","ambiguity": "关系边界不清时寻求明确回应是合理的。","stem": "回想这段关系，当你察觉对方把更多注意力放在别人身上时，你通常会怎么做？","options": [{"id": "A","text": "我会努力让自己更有吸引力，希望对方重新把我放在最重要的位置","r": {"reciprocity": -1,"stability": -1,"repair": 0,"selfPreservation": -2},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 2,"loss": 1}},{"id": "B","text": "我会先分清事实和自己的猜测，再向对方说明我的感受和边界","r": {"reciprocity": 2,"stability": 1,"repair": 1,"selfPreservation": 2},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "C","text": "我会想起过去对方只关注我的时候，希望那种感觉能够回来","r": {"reciprocity": -1,"stability": -1,"repair": 0,"selfPreservation": -1},"s": {"memory": 2,"potential": 1,"intermittent": 0,"validation": 1,"loss": 0}},{"id": "D","text": "我担心失去这段关系，所以即使介意也尽量不表现出来","r": {"reciprocity": -1,"stability": 0,"repair": -1,"selfPreservation": -2},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 2}}],"relationshipApplicability": ["ongoing","ended"],"sourceApplicable": true,"directionCoverage": {"method": "direct_option_scoring","positivePositions": ["B"],"negativePositions": ["A","C","D"],"sourceSignalPositions": ["A","C","D"]}},{"id": "Q19","scene": "ongoing","recent": true,"purpose": "观察决策与现实协作","ambiguity": "小事无需每次共同决定。","stem": "最近一次遇到会影响你们两个人的决定时，通常是怎么定下来的？","options": [{"id": "A","text": "两个人把各自的想法说出来，再一起决定","r": {"reciprocity": 2,"stability": 1,"repair": 1,"selfPreservation": 1},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "B","text": "通常由更熟悉这件事的人先提方案，另一方也能提出不同意见","r": {"reciprocity": 1,"stability": 1,"repair": 0,"selfPreservation": 1},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "C","text": "多半由一方先决定，再告诉另一方结果","r": {"reciprocity": -2,"stability": -1,"repair": -1,"selfPreservation": -1},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "D","text": "没有真正谈下来，事情就这样拖着或不了了之","r": {"reciprocity": -1,"stability": -1,"repair": -1,"selfPreservation": 0},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}}],"relationshipApplicability": ["ongoing"],"sourceApplicable": true,"directionCoverage": {"method": "direct_option_scoring","positivePositions": ["A","B"],"negativePositions": ["C","D"],"sourceSignalPositions": []}},{"id": "Q20","scene": "ended","recent": false,"purpose": "识别未完成叙事的持续拉力","ambiguity": "寻求一次澄清可能有帮助，但不保证对方会提供。","stem": "要让这段关系真正告一段落，你现在最需要什么？","options": [{"id": "A","text": "把当时没说清楚的事弄明白","r": {"reciprocity": -1,"stability": 0,"repair": 0,"selfPreservation": -1},"s": {"memory": 0,"potential": 2,"intermittent": 0,"validation": 0,"loss": 0},"tags": ["unfinished"]},{"id": "B","text": "确认自己对对方来说确实重要过","r": {"reciprocity": -1,"stability": 0,"repair": 0,"selfPreservation": -2},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 2,"loss": 0}},{"id": "C","text": "再有一次像从前那样好好相处的机会","r": {"reciprocity": -1,"stability": -1,"repair": 0,"selfPreservation": -1},"s": {"memory": 2,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "D","text": "接受可能不会再有回应，自己继续往前走","r": {"reciprocity": 1,"stability": 1,"repair": 0,"selfPreservation": 2},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}}],"relationshipApplicability": ["ended"],"sourceApplicable": true,"directionCoverage": {"method": "direct_option_scoring","positivePositions": ["D"],"negativePositions": ["B","C"],"sourceSignalPositions": ["A","B","C"]}},{"id": "Q21","scene": "ongoing","recent": true,"purpose": "测量需求协商与可持续性","ambiguity": "需求不能全部满足，重点是能否讨论。","stem": "最近你向对方提出一个具体需要后，哪种情况最常发生？","options": [{"id": "A","text": "即使不能完全满足，对方也会和我讨论各自能做到什么，以及有没有其他办法","r": {"reciprocity": 2,"stability": 2,"repair": 2,"selfPreservation": 2},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "B","text": "对方会短暂地做出改变，但过一段时间又回到原来的状态","r": {"reciprocity": -2,"stability": -2,"repair": -1,"selfPreservation": -1},"s": {"memory": 0,"potential": 1,"intermittent": 2,"validation": 0,"loss": 0}},{"id": "C","text": "我会收回自己的需要，担心不够体谅对方会影响这段关系","r": {"reciprocity": -1,"stability": 0,"repair": -1,"selfPreservation": -2},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 1,"loss": 2}},{"id": "D","text": "对方说以后会做到，我愿意再等一段时间看看","r": {"reciprocity": -1,"stability": -1,"repair": -1,"selfPreservation": 0},"s": {"memory": 0,"potential": 2,"intermittent": 0,"validation": 0,"loss": 0}}],"relationshipApplicability": ["ongoing"],"sourceApplicable": true,"directionCoverage": {"method": "direct_option_scoring","positivePositions": ["A"],"negativePositions": ["B","C","D"],"sourceSignalPositions": ["B","C","D"]}},{"id": "Q22","scene": "all","recent": false,"purpose": "区分现实人物与理想版本","ambiguity": "看到潜能并非问题，需与当前事实并看。","stem": "当你向朋友谈起对方时，所说的内容通常更接近哪一种？","options": [{"id": "A","text": "主要是过去真实发生过的温柔和默契","r": {"reciprocity": 0,"stability": 0,"repair": 0,"selfPreservation": 0},"s": {"memory": 2,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "B","text": "主要是我想象中，对方以后准备好了、愿意改变时会成为的样子","r": {"reciprocity": -1,"stability": -1,"repair": 0,"selfPreservation": 0},"s": {"memory": 0,"potential": 2,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "C","text": "我既会说欣赏对方的地方，也能如实说出对方目前做不到的事","r": {"reciprocity": 1,"stability": 1,"repair": 0,"selfPreservation": 2},"s": {"memory": 1,"potential": 1,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "D","text": "主要是对方曾经怎样选择我，以及那让我感到自己有多特别","r": {"reciprocity": -1,"stability": 0,"repair": 0,"selfPreservation": -1},"s": {"memory": 1,"potential": 0,"intermittent": 0,"validation": 2,"loss": 0}}],"relationshipApplicability": ["ongoing","ended"],"sourceApplicable": true,"directionCoverage": {"method": "direct_option_scoring","positivePositions": ["C"],"negativePositions": [],"sourceSignalPositions": ["A","B","C","D"]}},{"id": "Q23","scene": "ongoing","recent": true,"purpose": "观察一致性与不确定性成本","ambiguity": "关系初期存在合理探索期。","stem": "最近一个月，你是否经常猜测自己在对方心里的位置？","options": [{"id": "A","text": "很少需要猜测，对方说过的话和实际行动大体一致","r": {"reciprocity": 2,"stability": 2,"repair": 1,"selfPreservation": 1},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "B","text": "经常需要猜测，对方一时的热情或冷淡都会改变我的判断","r": {"reciprocity": -2,"stability": -2,"repair": 0,"selfPreservation": -2},"s": {"memory": 0,"potential": 0,"intermittent": 2,"validation": 2,"loss": 1}},{"id": "C","text": "经常需要猜测，但我觉得只要再耐心等待，关系就会变得明确","r": {"reciprocity": -1,"stability": -1,"repair": 0,"selfPreservation": -1},"s": {"memory": 0,"potential": 2,"intermittent": 0,"validation": 1,"loss": 0}},{"id": "D","text": "现在已经很难确定自己的位置，我主要靠对方过去的承诺安慰自己","r": {"reciprocity": -1,"stability": -1,"repair": -1,"selfPreservation": -1},"s": {"memory": 2,"potential": 0,"intermittent": 0,"validation": 1,"loss": 0}}],"relationshipApplicability": ["ongoing"],"sourceApplicable": true,"directionCoverage": {"method": "direct_option_scoring","positivePositions": ["A"],"negativePositions": ["B","C","D"],"sourceSignalPositions": ["B","C","D"]}},{"id": "Q24","scene": "all","recent": false,"purpose": "识别结束关系想象中的资源与恐惧","ambiguity": "现实住房、经济或安全约束应优先处理。","stem": "如果这段关系不再给你期待的回应，哪种情况更接近你的感受？","options": [{"id": "A","text": "我担心生活会突然空下来，不知道还能依靠什么支撑自己","r": {"reciprocity": -1,"stability": 0,"repair": 0,"selfPreservation": -2},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 2}},{"id": "B","text": "我会觉得自己失去了证明“值得被爱”的机会","r": {"reciprocity": -1,"stability": 0,"repair": 0,"selfPreservation": -2},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 2,"loss": 1}},{"id": "C","text": "我会怀念这段关系，但朋友、爱好和其他生活支撑也能帮助我度过","r": {"reciprocity": 1,"stability": 1,"repair": 0,"selfPreservation": 2},"s": {"memory": 1,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "D","text": "我担心自己刚决定放下，对方就变成了我一直期待的样子","r": {"reciprocity": -1,"stability": 0,"repair": 0,"selfPreservation": -1},"s": {"memory": 0,"potential": 2,"intermittent": 0,"validation": 1,"loss": 1}}],"relationshipApplicability": ["ongoing","ended"],"sourceApplicable": true,"directionCoverage": {"method": "direct_option_scoring","positivePositions": ["C"],"negativePositions": ["A","B"],"sourceSignalPositions": ["A","B","C","D"]}},{"id": "Q25","scene": "ongoing","recent": true,"purpose": "检查可靠支持与互惠","ambiguity": "一次无法到场不能代表总体可靠性。","stem": "最近你们约好互相帮助时，实际情况更接近哪一种？","options": [{"id": "A","text": "双方通常都会做到；如果做不到，也会提前说明并商量其他办法","r": {"reciprocity": 2,"stability": 2,"repair": 2,"selfPreservation": 1},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "B","text": "我通常会履行约定，但对方是否会做到，往往取决于当时是否方便或愿意","r": {"reciprocity": -2,"stability": -2,"repair": -1,"selfPreservation": -1},"s": {"memory": 0,"potential": 0,"intermittent": 2,"validation": 1,"loss": 0}},{"id": "C","text": "对方现在还做不到，但曾向我描述以后会怎样支持和照顾我","r": {"reciprocity": -1,"stability": -1,"repair": 0,"selfPreservation": 0},"s": {"memory": 0,"potential": 2,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "D","text": "我很少真的向对方求助，既怕失望，也怕给对方增添负担","r": {"reciprocity": -1,"stability": 0,"repair": -1,"selfPreservation": -2},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 1,"loss": 2}}],"relationshipApplicability": ["ongoing"],"sourceApplicable": true,"directionCoverage": {"method": "direct_option_scoring","positivePositions": ["A"],"negativePositions": ["B","D"],"sourceSignalPositions": ["B","C","D"]}},{"id": "Q26","scene": "all","recent": false,"purpose": "检查对高光片段的权重","ambiguity": "重要纪念日自然更容易被记住。","stem": "回想整段关系，你通常怎么理解那些特别好的时刻？","options": [{"id": "A","text": "它们是关系的一部分，我也会和其他日常放在一起看","r": {"reciprocity": 1,"stability": 1,"repair": 1,"selfPreservation": 1},"s": {"memory": 1,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "B","text": "它们让我觉得，只要好的时候足够好，其他时候的不顺也能接受","r": {"reciprocity": -1,"stability": -2,"repair": -1,"selfPreservation": -1},"s": {"memory": 0,"potential": 0,"intermittent": 2,"validation": 0,"loss": 0}},{"id": "C","text": "它们更像这段关系本来的样子，后来的变化只是暂时的","r": {"reciprocity": -1,"stability": -1,"repair": 0,"selfPreservation": -1},"s": {"memory": 2,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "D","text": "它们让我相信，对方以后还有可能变成我期待的样子","r": {"reciprocity": -1,"stability": -1,"repair": 0,"selfPreservation": -1},"s": {"memory": 0,"potential": 2,"intermittent": 0,"validation": 0,"loss": 0}}],"relationshipApplicability": ["ongoing","ended"],"sourceApplicable": true,"directionCoverage": {"method": "direct_option_scoring","positivePositions": ["A"],"negativePositions": ["B","C","D"],"sourceSignalPositions": ["A","B","C","D"]}},{"id": "Q27","scene": "ongoing","recent": true,"purpose": "测量近期待在关系中的身体与情绪空间","ambiguity": "身体反应不能单独归因于关系，也不是诊断。","stem": "最近有重要的事想和对方谈时，你通常会怎么做？","options": [{"id": "A","text": "找到方便的时间，直接说出自己想谈的事","r": {"reciprocity": 1,"stability": 1,"repair": 2,"selfPreservation": 1},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "B","text": "先想清楚怎么说，再选一个双方状态合适的时间","r": {"reciprocity": 1,"stability": 1,"repair": 1,"selfPreservation": 2},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "C","text": "会反复观察对方的态度，常常推迟开口","r": {"reciprocity": -1,"stability": -1,"repair": -1,"selfPreservation": -1},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "D","text": "大多最后没有说，等事情自己过去","r": {"reciprocity": -1,"stability": 0,"repair": -1,"selfPreservation": -2},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}}],"relationshipApplicability": ["ongoing"],"sourceApplicable": true,"directionCoverage": {"method": "direct_option_scoring","positivePositions": ["A","B"],"negativePositions": ["C","D"],"sourceSignalPositions": []}},{"id": "Q28","scene": "all","recent": false,"purpose": "综合现实、回忆和未来的权重","ambiguity": "当下处于危机期时应结合更长观察窗口。","stem": "当你考虑是否继续为这段关系投入时，你最看重哪一种依据？","options": [{"id": "A","text": "我们过去最相爱、最默契时带给我的感受","r": {"reciprocity": 0,"stability": 0,"repair": 0,"selfPreservation": 0},"s": {"memory": 2,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "B","text": "对方曾经描述过的未来，以及这段关系尚未实现的可能","r": {"reciprocity": -1,"stability": 0,"repair": 0,"selfPreservation": -1},"s": {"memory": 0,"potential": 2,"intermittent": 0,"validation": 0,"loss": 0},"tags": ["unfinished"]},{"id": "C","text": "最近一段时间里，对方的实际行动、处理问题的方式，以及我在关系中的状态","r": {"reciprocity": 2,"stability": 2,"repair": 2,"selfPreservation": 2},"s": {"memory": 0,"potential": 0,"intermittent": 0,"validation": 0,"loss": 0}},{"id": "D","text": "对方每次重新靠近时，那种让我觉得自己仍被需要的感觉","r": {"reciprocity": -1,"stability": -1,"repair": 0,"selfPreservation": -1},"s": {"memory": 0,"potential": 0,"intermittent": 2,"validation": 2,"loss": 0}}],"relationshipApplicability": ["ongoing","ended"],"sourceApplicable": true,"directionCoverage": {"method": "direct_option_scoring","positivePositions": ["C"],"negativePositions": ["D"],"sourceSignalPositions": ["A","B","D"]}}],"reports": {"memory_supply": {"originalName": "回忆来源","gentleAlias": "过去的美好更容易留在心里","core": "这次答案提示，你可能更容易从共同经历和过去的感受中理解这段关系。","energy": "回忆可以带来安慰，也可以和现在的相处情况放在一起看；两者不必互相否定。","attachment": "可能包括共同经历、当时的感受，以及那段时间里的自己。","signals": ["最近真实发生的互动，和记忆中的关系是否相似","想到过去时，你更清楚现在需要什么，还是更难判断","你能否同时承认过去有美好、现在也可能不同"],"strengths": "你可能很重感情，也善于保存一段关系对自己的意义。","risks": "如果回忆比近期事实更有分量，判断当下时可能会少看到一些变化。","actions": ["各写三条“过去让我珍惜的事”和“最近真实发生的事”","看一眼两组内容：哪些仍在发生，哪些只属于过去","选一件与这段关系无关、但能让自己舒服的小事去做"],"observationPeriod": "按你舒服的节奏","share": "我可以珍惜过去，也可以如实看见现在。","safety": "若存在暴力、威胁、强控制、跟踪或人身风险，优先联系可信赖的人、当地紧急服务和专业支持；紧急危险时联系当地紧急服务。"},"potential_wait": {"originalName": "未来期待来源","gentleAlias": "对未来的期待更有分量","core": "这次答案提示，你可能会把关系尚未实现的可能，也放进是否继续投入的考虑里。","energy": "期待能给人方向；同时看看近期事实，能帮助你区分“我希望发生”和“正在发生”。","attachment": "可能包括对未来的想象、共同设想，或还没有得到答案的部分。","signals": ["你期待的变化，最近是否有看得见的小迹象","这份期待让你更安心，还是让决定一直悬着","如果未来保持现状，你现在最需要照顾什么"],"strengths": "你可能有耐心，也愿意为关系保留成长空间。","risks": "如果未来想象占了太多位置，当下是否合适可能会变得不容易判断。","actions": ["选一个最在意的期待，用一句话写成可观察的日常变化","再写一句“最近实际发生的是……”","比较两句之间的距离，不急着马上做决定"],"observationPeriod": "按你舒服的节奏","share": "我可以保留期待，也会看看当下正在发生什么。","safety": "若存在暴力、威胁、强控制、跟踪或人身风险，优先联系可信赖的人、当地紧急服务和专业支持；紧急危险时联系当地紧急服务。"},"intermittent_reward": {"originalName": "相处起伏来源","gentleAlias": "相处中的起伏更容易影响判断","core": "这次答案提示，相处中较好和较难受的时刻，可能都会明显影响你对关系的判断。","energy": "人在感受到明显变化时，注意力自然会被吸引；更完整地看一段时间里的日常，有助于判断什么更常发生。","attachment": "可能包括被靠近时的感受、相处节奏的变化，以及你对下一次互动的期待。","signals": ["最近多数时候的相处，比某一次特别的互动更接近什么状态","互动变化时，你对关系的判断会不会很快跟着改变","把期待暂时放在一边，你如何描述目前的日常"],"strengths": "你可能对关系里的变化和连接很敏锐。","risks": "如果少数特别时刻很醒目，平常更常出现的相处状态可能不容易被看见。","actions": ["回想最近三次让你印象较深的互动，各用一句话写下发生了什么","再补一句“多数普通时候，我们更像……”","比较真实互动和自己的期待，看看哪一项更影响现在的决定"],"observationPeriod": "按你舒服的节奏","share": "我会同时看见特别的时刻和大多数日常。","safety": "若存在暴力、威胁、强控制、跟踪或人身风险，优先联系可信赖的人、当地紧急服务和专业支持；紧急危险时联系当地紧急服务。"},"self_proof": {"originalName": "被选择感来源","gentleAlias": "被重视的感觉更有分量","core": "这次答案提示，对方是否重视和选择你，可能会影响你怎么看待这段关系，也影响你怎么看自己。","energy": "希望被重视是自然需要；把自己的需要也放回判断中，可以减少只等对方给答案的感觉。","attachment": "可能包括被在意、被肯定，以及确认自己重要的感受。","signals": ["不确定对方态度时，你会不会很快怀疑自己","除了对方的选择，你自己的需要是否也被看见","这段关系是否让你更自在地做自己"],"strengths": "你可能重视承诺和关系中的明确感，也愿意认真投入。","risks": "如果自我评价太依赖对方的反馈，你自己的感受和选择可能被放到后面。","actions": ["把“对方怎么看我”换成“我在这段关系里感觉怎样”","写下此刻最重要的一项关系需要","想一件不依赖对方回应、今天就能为自己做的小事"],"observationPeriod": "按你舒服的节奏","share": "我在意被重视，也会认真看见自己的选择。","safety": "若存在暴力、威胁、强控制、跟踪或人身风险，优先联系可信赖的人、当地紧急服务和专业支持；紧急危险时联系当地紧急服务。"},"loss_fear": {"originalName": "变化担忧来源","gentleAlias": "对失去和变化的担心更有分量","core": "这次答案提示，除了感情本身，你也可能会考虑关系变化带来的孤独、空白或现实影响。","energy": "担心变化并不等于软弱；看清自己已有的支持和选择，会让判断更有余地。","attachment": "可能包括熟悉感、陪伴、生活安排，以及面对变化时需要的安全感。","signals": ["想到关系变化时，你最担心的是感受还是现实安排","你目前有哪些关系外的支持","担心是否让你把自己的需要放到了后面"],"strengths": "你可能珍惜连接，也会认真考虑决定对生活的影响。","risks": "如果担心占据了大部分注意力，你真正想要的关系状态可能不容易被听见。","actions": ["写下一个最具体的担心，不必一次解决全部","在身边的人、日常安排和可用资源中，找出一个现有支持","问自己：如果这份担心暂时减轻一点，我会更想要怎样的相处"],"observationPeriod": "按你舒服的节奏","share": "我可以先照顾对变化的担心，再看清自己的选择。","safety": "若存在暴力、威胁、强控制、跟踪或人身风险，优先联系可信赖的人、当地紧急服务和专业支持；紧急危险时联系当地紧急服务。"},"mutual_growth": {"originalName": "双向生长","gentleAlias": "目前有较多双向支持的迹象","core": "这次答案显示，你们大多愿意用实际行动回应彼此；平时的相处让你心里有底，遇到问题后也能重新沟通。同时，你不需要总是压下自己的感受或放弃原来的生活。","energy": "这不代表关系没有问题，而是本次答案显示，你们目前较可能有空间表达需要、共同商量，也保留各自生活。","attachment": "更接近对现实相处和双方行动的感受。","signals": ["这些积极状态最近是否仍在持续","彼此是否都能表达不同意见和需要","出现新问题时，双方能否继续一起面对"],"strengths": "目前的相处可能具备一定互相支持和共同调整的空间。","risks": "这是本次答案呈现的状态，不是永久保证，也不能覆盖题目之外的感受或风险。","actions": ["各说一件最近相处中想继续保持的小事","选一个不难开口的期待，用具体的话告诉对方","偶尔问问自己：这段关系是否仍让我安心，也让我做自己"],"observationPeriod": "按你们舒服的节奏","share": "好的相处可以被看见，也需要双方继续参与。","safety": "若存在暴力、威胁、强控制、跟踪或人身风险，优先联系可信赖的人、当地紧急服务和专业支持；紧急危险时联系当地紧急服务。"},"mixed": {"originalName": "多种来源接近","gentleAlias": "几种倾向比较接近","core": "这次答案没有只指向一个原因，几种感受可能在不同情境里同时影响你。","energy": "这不是结果含糊，也不需要强行选一个标签；先看近期真实相处，再分辨哪些感受最影响现在。","attachment": "可能由回忆、期待、相处变化、被重视的感觉或对失去的担心共同构成。","signals": ["哪种感受最近出现得更频繁","哪种感受最影响你当下的决定","哪些来自真实互动，哪些更多来自自己的期待或担心"],"strengths": "这组答案保留了关系体验本来的复杂性。","risks": "急着找唯一解释，反而可能漏掉真正重要的部分。","actions": ["从页面显示的接近倾向里，选两个最有共鸣的词","每个词各写一个最近真实发生的例子；没有例子也可以留空","回到同一个问题：现在的相处是否符合我的需要"],"observationPeriod": "按你舒服的节奏","share": "我不必急着归类，可以先看清当下。","safety": "若存在暴力、威胁、强控制、跟踪或人身风险，优先联系可信赖的人、当地紧急服务和专业支持；紧急危险时联系当地紧急服务。"},"sources_not_prominent": {"originalName": "现实相处更有分量","gentleAlias": "没有某一种感受明显左右你的判断","core": "过去的美好、对未来变好的期待、偶尔出现的热情、想确认自己被重视，以及害怕失去关系，都没有明显左右你的判断。判断这段关系是否适合你，更值得看双方现实中怎样相处，以及你在其中是否自在。","energy": "这不是空结果，也不表示关系一定健康。它只是说明，你目前不像是被某一种特定感受推着走；现实中发生了什么，才是这份结果更需要关注的部分。","attachment": "你对这段关系的判断，暂时更适合落在双方的实际行动、相处感受和自己的需要上。","signals": ["目前的相处是否让你既感到被回应，也能保留自己","哪些互动是你希望双方继续保持的","如果只看近期事实，这段关系与自己的需要还有什么距离"],"strengths": "你不需要依靠一个固定标签，仍然可以从现实互动中形成清楚的判断。","risks": "没有某一种感受特别突出，不等于关系一定没有问题；题目之外的处境、感受和安全风险仍需要单独看待。","actions": ["说出一项最近相处中希望继续保持的互动","写下一项此刻最重要的关系需要，再看看现实中是否有回应","过一段时间再问自己：这段关系是否仍让我安心，也让我做自己"],"observationPeriod": "按你舒服的节奏","share": "我不靠标签判断关系，我更愿意看见正在发生的相处。","safety": "若存在暴力、威胁、强控制、跟踪或人身风险，优先联系可信赖的人、当地紧急服务和专业支持；紧急危险时联系当地紧急服务。"},"insufficient_answers": {"originalName": "信息不足","gentleAlias": "目前信息不足，暂不归类","core": "这次选择“不适用 / 不确定”的题目较多，目前还无法可靠判断这段关系更偏滋养还是消耗，也无法判断什么最影响你的投入。","energy": "这不是答错，也不代表关系有问题；只是题目与当前情况的重合信息较少。","attachment": "暂不判断，以你自己的现实观察为准。","signals": ["是否有较多题目确实不符合你的情况","是否需要换一个更合适的时间再看","题目之外，什么才是你现在最在意的事"],"strengths": "在无法判断时选择不适用，比勉强作答更诚实。","risks": "在信息不足时继续解释，容易制造并不存在的确定感。","actions": ["不需要为了得到结果而勉强补答","如果愿意，只写下最近真实发生的一件互动和你的感受","题目不适合时，优先相信你对现实情况的了解"],"observationPeriod": "无需固定观察期","share": "暂不归类，不代表我答错了。","safety": "若存在暴力、威胁、强控制、跟踪或人身风险，优先联系可信赖的人、当地紧急服务和专业支持；紧急危险时联系当地紧急服务。"}}};</script>
+<script>
+// =============================================
+// DATA & SCORING ENGINE (mirrors stage_a_scoring.py)
+// =============================================
+let QUIZ_DATA = null;
+const RELATIONSHIP_KEYS = ["reciprocity","stability","repair","selfPreservation"];
+const SUSTAINABILITY_KEYS = ["stability","repair","selfPreservation"];
+const SOURCE_KEYS = ["memory","potential","intermittent","validation","loss"];
+
+function loadQuizData(json) {
+  QUIZ_DATA = json;
+}
+
+function _round2(v) { return Math.round((v + 1e-12) * 100) / 100; }
+
+function _normalize(raw, mn, mx) {
+  if (mx === mn) return 50;
+  return _round2(100 * (raw - mn) / (mx - mn));
+}
+
+function scoreAnswers(answers, stage) {
+  const rules = QUIZ_DATA.rules;
+  const questions = QUIZ_DATA.questions.filter(q => q.scene === "all" || q.scene === stage);
+  const applicableIds = new Set(questions.map(q => q.id));
+
+  // normalize answers
+  const norm = {};
+  for (const [qid, val] of Object.entries(answers)) {
+    if (!applicableIds.has(qid)) continue;
+    if (val === null || val === undefined) { norm[qid] = "NA"; continue; }
+    let v = String(val).toUpperCase();
+    if (!["A","B","C","D","NA"].includes(v)) v = "NA";
+    norm[qid] = v;
+  }
+
+  const relRaw = {}, relMin = {}, relMax = {};
+  RELATIONSHIP_KEYS.forEach(k => { relRaw[k]=0; relMin[k]=0; relMax[k]=0; });
+  const srcRaw = {}, srcMax = {};
+  SOURCE_KEYS.forEach(k => { srcRaw[k]=0; srcMax[k]=0; });
+
+  let answered = 0, sourceAnswered = 0, relAnswered = 0, strong = 0;
+  const relApplicable = questions.filter(q => q.relationshipApplicability.includes(stage)).length;
+  const sourceApplicable = questions.filter(q => q.sourceApplicable).length;
+  let unfinishedWeight = 0;
+  const outAnswers = {};
+
+  for (const q of questions) {
+    const qid = q.id;
+    const answer = norm[qid] || "NA";
+    outAnswers[qid] = answer;
+    if (answer === "NA") continue;
+
+    answered++;
+    if (q.sourceApplicable) sourceAnswered++;
+    const option = q.options.find(o => o.id === answer);
+    const weight = q.recent ? rules.recentQuestionWeight : 1.0;
+
+    if (q.sourceApplicable) {
+      for (const k of SOURCE_KEYS) {
+        srcRaw[k] += option.s[k] * weight;
+        const maxOpt = Math.max(...q.options.map(o => o.s[k]));
+        srcMax[k] += maxOpt * weight;
+      }
+      if ((option.tags || []).includes("unfinished")) unfinishedWeight += weight;
+    }
+
+    if (q.relationshipApplicability.includes(stage)) {
+      relAnswered++;
+      const hasStrong = RELATIONSHIP_KEYS.some(k => option.r[k] <= -2);
+      if (hasStrong) strong++;
+      for (const k of RELATIONSHIP_KEYS) {
+        relRaw[k] += option.r[k] * weight;
+        relMin[k] += Math.min(...q.options.map(o => o.r[k])) * weight;
+        relMax[k] += Math.max(...q.options.map(o => o.r[k])) * weight;
+      }
+    }
+  }
+
+  const totalCov = questions.length ? answered / questions.length : 0;
+  const srcCov = sourceApplicable ? sourceAnswered / sourceApplicable : 0;
+  const sceneCov = relApplicable ? relAnswered / relApplicable : 0;
+  const cov = rules.coverage;
+
+  const srcComputable = totalCov >= cov.totalAnsweredRatioMin && srcCov >= cov.sourceAnsweredRatioMin;
+  const relComputable = relAnswered >= cov.relationshipMinApplicableQuestions && sceneCov >= cov.relationshipApplicableRatioMin;
+
+  const relationship = relComputable
+    ? RELATIONSHIP_KEYS.reduce((o,k) => { o[k] = _normalize(relRaw[k], relMin[k], relMax[k]); return o; }, {})
+    : null;
+
+  const sustainability = relationship
+    ? _round2(SUSTAINABILITY_KEYS.reduce((s,k) => s + relationship[k], 0) / 3)
+    : null;
+
+  const sources = srcComputable
+    ? SOURCE_KEYS.reduce((o,k) => { o[k] = srcMax[k] === 0 ? 0 : _round2(100 * srcRaw[k] / srcMax[k]); return o; }, {})
+    : null;
+
+  // Growth gate
+  let growth = false, growthReason = null;
+  const g = rules.growthGate;
+  if (!g.applicableStages.includes(stage)) {
+    growthReason = g.endedNotApplicableReason;
+  } else if (relationship) {
+    growth = relationship.reciprocity >= g.reciprocityMin
+          && relationship.stability >= g.stabilityMin
+          && relationship.repair >= g.repairMin
+          && relationship.selfPreservation >= g.selfPreservationMin
+          && sustainability >= g.sustainabilityMin
+          && strong <= g.maxStrongRiskAnswers;
+  }
+
+  // Source classification
+  const srcRule = rules.source;
+  let primary = [], secondary = [], margin = 0, srcStatus = "information_insufficient", reportId = "insufficient_answers";
+  if (sources) {
+    const order = srcRule.fixedOrder;
+    const ranked = [...SOURCE_KEYS].sort((a,b) => sources[b] - sources[a] || order.indexOf(a) - order.indexOf(b));
+    const top = sources[ranked[0]];
+    margin = top - sources[ranked[1]];
+    const near = ranked.filter(k => top - sources[k] <= srcRule.tieGap);
+
+    if (top < srcRule.prominentMin) {
+      // fallbackRule: 取最高分来源为主结果；仅最高分为0时输出 insufficient_answers
+      if (top === 0) {
+        srcStatus = "information_insufficient"; reportId = "insufficient_answers";
+      } else {
+        srcStatus = "fallback"; primary = [ranked[0]];
+        reportId = QUIZ_DATA.dimensions.sources[primary[0]].resultId;
+      }
+    } else if (near.length >= 3) {
+      srcStatus = "multiple"; primary = near.slice(0, srcRule.maxPrimarySources); reportId = "mixed";
+    } else if (near.length === 2) {
+      srcStatus = "tie"; primary = near; reportId = "mixed";
+    } else {
+      srcStatus = "primary"; primary = [ranked[0]];
+      reportId = QUIZ_DATA.dimensions.sources[primary[0]].resultId;
+      secondary = ranked.slice(1).filter(k =>
+        sources[k] >= srcRule.prominentMin && top - sources[k] <= srcRule.secondaryGap
+      ).slice(0,1);
+    }
+  }
+
+  // Confidence
+  let thresholds = [];
+  if (sources) {
+    thresholds.push(
+      Math.abs(Math.max(...Object.values(sources)) - srcRule.prominentMin),
+      Math.abs(margin - srcRule.tieGap),
+      Math.abs(margin - srcRule.secondaryGap)
+    );
+  }
+  if (relationship) {
+    for (const k of RELATIONSHIP_KEYS) thresholds.push(Math.abs(relationship[k] - g[`${k}Min`]));
+    thresholds.push(Math.abs(sustainability - g.sustainabilityMin));
+  }
+  const thresholdDist = thresholds.length ? Math.min(...thresholds) : 0;
+
+  let confLevel = "insufficient";
+  if (srcComputable) {
+    const h = rules.confidence.high, m = rules.confidence.medium;
+    if (totalCov >= h.totalCoverageMin && srcCov >= h.sourceCoverageMin && sceneCov >= h.sceneCoverageMin && margin >= h.primaryMarginMin && thresholdDist >= h.thresholdDistanceMin) {
+      confLevel = "high";
+    } else if (totalCov >= m.totalCoverageMin && srcCov >= m.sourceCoverageMin && sceneCov >= m.sceneCoverageMin && margin >= m.primaryMarginMin && thresholdDist >= m.thresholdDistanceMin) {
+      confLevel = "medium";
+    } else {
+      confLevel = "low";
+    }
+  }
+
+  const unfinished = srcComputable ? unfinishedWeight >= srcRule.unfinishedEvidenceWeightMin : false;
+
+  return {
+    stage, relationship, sustainability, sources, growth, growthReason,
+    srcStatus, primary, secondary, reportId, unfinished, unfinishedWeight,
+    sourceTop: sources ? Math.max(...Object.values(sources)) : null,
+    sourceMargin: sources ? _round2(margin) : null,
+    confidence: confLevel, strongRiskCount: strong,
+    totalCov: _round2(totalCov), srcCov: _round2(srcCov), sceneCov: _round2(sceneCov),
+    answeredCount: answered, applicableCount: questions.length,
+    answers: outAnswers
+  };
+}
+
+// =============================================
+// UI LOGIC
+// =============================================
+loadQuizData(QUIZ_DATA_INLINE);
+
+let selectedStage = null;
+let currentQ = 0;
+let userAnswers = {};
+let quizQuestions = [];
+
+// ---- Intro ----
+function stageQuestionCount(stage) {
+  return QUIZ_DATA.questions.filter(q => q.scene === 'all' || q.scene === stage).length;
+}
+
+function selectStage(card) {
+  document.querySelectorAll('.stage-card').forEach(c => {
+    const selected = c === card;
+    c.classList.toggle('selected', selected);
+    c.setAttribute('aria-pressed', String(selected));
+  });
+  selectedStage = card.dataset.stage;
+  document.getElementById('startBtn').disabled = false;
+  document.getElementById('quizMeta').textContent = `本阶段共 ${stageQuestionCount(selectedStage)} 题 · 约 5-8 分钟`;
+}
+
+document.querySelectorAll('.stage-card').forEach(card => {
+  if (card.classList.contains('selected')) selectedStage = card.dataset.stage;
+  card.addEventListener('click', () => selectStage(card));
+  card.addEventListener('keydown', event => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      selectStage(card);
+    }
+  });
+});
+if (selectedStage) {
+  document.getElementById('startBtn').disabled = false;
+  document.getElementById('quizMeta').textContent = `本阶段共 ${stageQuestionCount(selectedStage)} 题 · 约 5-8 分钟`;
+}
+
+document.getElementById('startBtn').addEventListener('click', () => {
+  if (!selectedStage) return;
+  quizQuestions = QUIZ_DATA.questions.filter(q => q.scene === 'all' || q.scene === selectedStage);
+  currentQ = 0;
+  userAnswers = {};
+  quizQuestions.forEach(q => userAnswers[q.id] = null);
+  showScreen('quiz');
+  renderQuestion();
+});
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// ---- Quiz ----
+function renderQuestion() {
+  const q = quizQuestions[currentQ];
+  const area = document.getElementById('questionArea');
+  const pct = ((currentQ + 1) / quizQuestions.length * 100);
+  document.getElementById('progressBar').style.width = pct + '%';
+
+  let optHtml = '';
+  q.options.forEach(o => {
+    const sel = userAnswers[q.id] === o.id ? ' selected' : '';
+    optHtml += `<div class="q-option${sel}" data-qid="${q.id}" data-oid="${o.id}" role="button" tabindex="0" aria-pressed="${userAnswers[q.id] === o.id}">
+      <span class="opt-letter">${o.id}</span>${o.text}
+    </div>`;
+  });
+
+  const naActive = userAnswers[q.id] === 'NA' ? ' active' : '';
+
+  area.innerHTML = `
+    <div class="fade-up">
+      <div class="q-number">第 ${currentQ + 1} / ${quizQuestions.length} 题</div>
+      <div class="q-stem">${q.stem}</div>
+      <div class="q-options">${optHtml}</div>
+      <div class="q-na${naActive}" data-qid="${q.id}" role="button" tabindex="0" aria-pressed="${userAnswers[q.id] === 'NA'}">不确定 / 不适用 / 不想回答</div>
+    </div>
+    <div class="nav-row">
+      <button class="btn btn-outline" id="prevBtn" ${currentQ === 0 ? 'disabled' : ''}>上一题</button>
+      <span class="counter">${Object.values(userAnswers).filter(v => v !== null).length} / ${quizQuestions.length} 已答</span>
+      <button class="btn btn-primary" id="nextBtn" ${userAnswers[q.id] === null ? 'disabled' : ''}>${currentQ === quizQuestions.length - 1 ? '查看结果' : '下一题'}</button>
+    </div>
+  `;
+
+  // option click
+  area.querySelectorAll('.q-option').forEach(el => {
+    const chooseOption = () => {
+      userAnswers[el.dataset.qid] = el.dataset.oid;
+      renderQuestion();
+    };
+    el.addEventListener('click', chooseOption);
+    el.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        chooseOption();
+      }
+    });
+  });
+
+  // NA click
+  const naOption = area.querySelector('.q-na');
+  const chooseNa = () => {
+    userAnswers[naOption.dataset.qid] = 'NA';
+    renderQuestion();
+  };
+  naOption.addEventListener('click', chooseNa);
+  naOption.addEventListener('keydown', event => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      chooseNa();
+    }
+  });
+
+  // nav
+  document.getElementById('prevBtn').addEventListener('click', () => {
+    if (currentQ > 0) { currentQ--; renderQuestion(); }
+  });
+
+  document.getElementById('nextBtn').addEventListener('click', () => {
+    if (currentQ < quizQuestions.length - 1) {
+      currentQ++;
+      renderQuestion();
+    } else {
+      showResults();
+    }
+  });
+}
+
+// ---- Results ----
+function relationshipStory(result, dimLabels) {
+  if (!result.relationship) {
+    return {
+      title: '目前还不足以判断关系状态',
+      summary: '有效答案较少，这次先不对关系作整体判断。',
+      detail: '不需要为了得到结论而勉强补答。'
+    };
+  }
+
+  const values = RELATIONSHIP_KEYS.map(k => result.relationship[k]);
+  const average = values.reduce((sum, value) => sum + value, 0) / values.length;
+  const lowestKey = [...RELATIONSHIP_KEYS].sort((a, b) => result.relationship[a] - result.relationship[b])[0];
+  const strongestKey = [...RELATIONSHIP_KEYS].sort((a, b) => result.relationship[b] - result.relationship[a])[0];
+  const historyPrefix = result.stage === 'ended' ? '回看这段关系，' : '';
+
+  if (result.growth) {
+    return {
+      title: '现实相处中有较多双向支持',
+      summary: `${historyPrefix}双方大多愿意用实际行动回应彼此；平时的相处让你心里有底，遇到问题后也能重新沟通。同时，你不需要总是压下自己的感受或放弃原来的生活。`,
+      detail: `${dimLabels[strongestKey]}是目前表现更好的一面；接下来可以继续留意${dimLabels[lowestKey]}。`
+    };
+  }
+  if (average >= 62) {
+    return {
+      title: result.stage === 'ended' ? '这段经历里有不少现实支持' : '关系有现实支撑，也有一处需要继续观察',
+      summary: `${historyPrefix}这段相处大部分时候能给你支持，但还有一个重要部分没有那么稳。`,
+      detail: `目前更值得留意的是${dimLabels[lowestKey]}，看看它是否正在影响你的安心感和日常状态。`
+    };
+  }
+  if (average >= 50) {
+    return {
+      title: result.stage === 'ended' ? '这段经历既有支持，也留下了消耗' : '这段关系里，支持与消耗同时存在',
+      summary: `${historyPrefix}有些相处让你感到被支持，也有些时候需要你花更多力气才能维持。`,
+      detail: `最需要回到现实中观察的是${dimLabels[lowestKey]}：它带来的舒服和压力，哪一种更常出现。`
+    };
+  }
+  return {
+    title: result.stage === 'ended' ? '这段经历带来的压力更明显' : '这段关系目前更需要照顾你的消耗感',
+    summary: `${historyPrefix}你得到的回应和安心感相对有限；出现问题时，双方也未必能一起处理，或者你常常需要压下自己的感受来维持关系。`,
+    detail: `其中最需要留意的是${dimLabels[lowestKey]}，以及它是否持续影响你的情绪、生活和选择。`
+  };
+}
+
+function sourceStory(result, reports, srcLabels) {
+  const presentationReportId = result.srcStatus === 'fallback' ? 'sources_not_prominent' : result.reportId;
+  const report = reports[presentationReportId] || reports.insufficient_answers;
+  const primaryNames = result.primary.map(k => srcLabels[k]);
+  const closeNames = result.sources
+    ? [...SOURCE_KEYS]
+        .sort((a, b) => result.sources[b] - result.sources[a])
+        .filter(k => result.sourceTop - result.sources[k] <= QUIZ_DATA.rules.source.tieGap)
+        .map(k => srcLabels[k])
+    : [];
+
+  if (result.srcStatus === 'information_insufficient') {
+    return { title: '目前还无法判断什么最影响你的投入', summary: report.core, report };
+  }
+  if (result.srcStatus === 'fallback') {
+    return {
+      title: '没有某一种感受明显左右你的判断',
+      summary: '过去的美好、对未来变好的期待、偶尔出现的热情、想确认自己被重视，以及害怕失去关系，都没有明显左右你的判断。关系是否适合你，更值得根据双方现实中怎样相处来判断。',
+      report
+    };
+  }
+  if (result.srcStatus === 'tie' || result.srcStatus === 'multiple') {
+    return {
+      title: `${closeNames.slice(0, 2).join('与')}共同影响你的判断`,
+      summary: `这组完整答案同时指向${closeNames.join('、')}，不适合压缩成一个标签。它们可能在不同情境里轮流变得重要。`,
+      report
+    };
+  }
+
+  const boundary = result.sourceMargin < QUIZ_DATA.rules.confidence.medium.primaryMarginMin;
+  return {
+    title: `${primaryNames.join('、')}，更容易影响你现在的判断`,
+    summary: `${report.core}${boundary ? ' 不过它与下一项比较接近，更适合作为观察方向，而不是固定标签。' : ''}${result.unfinished ? ' 答案中也出现了对未完成部分的在意。' : ''}`,
+    report
+  };
+}
+
+function mainResultStory(result, relationship, source) {
+  if (result.srcStatus === 'information_insufficient' && !result.relationship) {
+    return {
+      title: '这次信息还不足，先不用勉强给关系下结论',
+      lead: '较多题目与你的情况不重合，或你选择了“不确定 / 不适用”。这不是答错，只是本次答案还不足以支持可靠解释。'
+    };
+  }
+  if (result.growth && result.srcStatus === 'fallback') {
+    return {
+      title: '你更像是在根据现实相处，判断这段关系',
+      lead: '这段关系目前给了你较多现实支持。过去的美好、对未来的期待、偶尔的高光、想被重视或害怕失去，都没有明显左右你的判断；你更像是在根据双方当下怎样相处来感受这段关系。'
+    };
+  }
+  if (result.growth) {
+    return {
+      title: '这段关系有现实支撑，也有一种感受在牵动你',
+      lead: `${relationship.summary}与此同时，${source.title}。这两件事可以同时成立。`
+    };
+  }
+  if (result.srcStatus === 'fallback') {
+    return {
+      title: relationship.title,
+      lead: `${relationship.summary}没有某一种特定感受明显左右你的判断，所以更值得看现实中的相处，是否持续符合你的需要。`
+    };
+  }
+  return {
+    title: relationship.title,
+    lead: `${relationship.summary}同时，${source.title}；它解释的是你如何理解或留恋这段关系，并不替代对现实相处的判断。`
+  };
+}
+
+function showResults() {
+  const result = scoreAnswers(userAnswers, selectedStage);
+  const reports = QUIZ_DATA.reports;
+  const dimLabels = Object.fromEntries(
+    Object.entries(QUIZ_DATA.dimensions.relationship).map(([key, value]) => [key, value.label])
+  );
+  const srcLabels = Object.fromEntries(
+    Object.entries(QUIZ_DATA.dimensions.sources).map(([key, value]) => [key, value.label])
+  );
+  const relationship = relationshipStory(result, dimLabels);
+  const source = sourceStory(result, reports, srcLabels);
+  const main = mainResultStory(result, relationship, source);
+  const mainReport = source.report;
+  const wrap = document.getElementById('resultsWrap');
+
+  let html = `<div class="result-header fade-up">
+    <h2>你的关系观察</h2>
+    <div class="result-type">${main.title}</div>
+    <p class="result-lead">${main.lead}</p>
+    <span class="result-kicker">已回答 ${result.answeredCount}/${result.applicableCount} 道当前阶段适用题</span>
+  </div>`;
+
+  html += `<div class="result-card fade-up">
+    <h3>这份结果的两个角度</h3>
+    <div class="story-grid">
+      <div class="story-panel">
+        <div class="story-label">现实相处</div>
+        <strong>${relationship.title}</strong>
+        <p>${relationship.detail}</p>
+      </div>
+      <div class="story-panel">
+        <div class="story-label">什么在影响你的判断和投入</div>
+        <strong>${source.title}</strong>
+        <p>${source.summary}</p>
+      </div>
+    </div>
+    <p class="result-boundary">前一部分看你们现实中怎样相处；后一部分看哪些感受更容易影响你对关系的判断和投入。</p>
+  </div>`;
+
+  if (result.relationship) {
+    const colors = { reciprocity:'#7aaa8a', stability:'#6b9bc0', repair:'#d4a574', selfPreservation:'#a89bb0' };
+    const gate = QUIZ_DATA.rules.growthGate;
+    const levelFor = (key, value) => value >= gate[`${key}Min`] ? '积极迹象较多' : value >= 50 ? '有一些积极迹象' : '较需要留意';
+    html += `<div class="result-card fade-up"><h3>关系如何运行</h3><p style="color:var(--text-secondary);font-size:.86rem;margin-bottom:.8rem">不展示容易误解的裸分，只呈现本次答案中的相对状态。</p>`;
+    for (const k of RELATIONSHIP_KEYS) {
+      const v = result.relationship[k];
+      html += `<div class="dim-row">
+        <span class="dim-label">${dimLabels[k]}</span>
+        <div class="dim-bar-wrap"><div class="dim-bar" style="width:${v}%;background:${colors[k]}"></div></div>
+        <span class="dim-val" style="width:6.8rem">${levelFor(k, v)}</span>
+      </div>`;
+    }
+    const sustainabilityLevel = result.sustainability >= gate.sustainabilityMin ? '积极迹象较多' : result.sustainability >= 50 ? '有一些积极迹象' : '较需要留意';
+    html += `<div class="dim-row" style="margin-top:.5rem;padding-top:.5rem;border-top:1px dashed var(--border)">
+      <span class="dim-label" style="font-weight:600;color:var(--text)">这样的相处能不能长期让你舒服</span>
+      <div class="dim-bar-wrap"><div class="dim-bar" style="width:${result.sustainability}%;background:var(--primary)"></div></div>
+      <span class="dim-val" style="width:6.8rem">${sustainabilityLevel}</span>
+    </div>
+    <div class="evidence-list">
+      ${RELATIONSHIP_KEYS.map(k => `<span class="evidence-chip">${dimLabels[k]}：${levelFor(k, result.relationship[k])}</span>`).join('')}
+    </div></div>`;
+  }
+
+  html += `<div class="result-card fade-up">
+    <h3>接下来最值得看</h3>
+    <ul class="signal-list">${mainReport.signals.slice(0, 2).map(item => `<li>${item}</li>`).join('')}</ul>
+    <p style="margin-top:.8rem"><strong>别忽略：</strong>${mainReport.risks}</p>
+  </div>`;
+
+  html += `<div class="result-card fade-up"><h3>可以马上做的两件小事</h3><ul class="action-list">
+    ${mainReport.actions.slice(0, 2).map(item => `<li>${item}</li>`).join('')}
+  </ul><p style="font-size:.82rem;color:var(--text-secondary);margin-top:.6rem">不必急着作决定，按你舒服的节奏观察即可。</p></div>`;
+
+  html += `<div class="result-card fade-up" style="text-align:center;background:var(--accent-light)">
+    <p style="font-size:1.08rem;font-weight:600;color:var(--primary)">“${mainReport.share}”</p>
+  </div>`;
+
+  if (result.stage === 'ended') {
+    html += `<div class="result-card fade-up"><h3>关于已经结束的关系</h3><p>这里呈现的是对过往相处的回看，不判断你们现在是否处于“双向生长”，也不暗示是否应该复合。</p></div>`;
+  }
+
+  html += `<div class="safety-card fade-up"><h3>安全提示</h3><p>${mainReport.safety}</p></div>`;
+  html += `<div class="disclaimer-result">
+    本测试为自我觉察与娱乐内容，不替你决定分手或复合。结果只反映当前作答，也不能覆盖题目之外的处境。<br>
+    页面层级不是概率、百分位或心理诊断；“不确定 / 不适用”不计分。
+  </div>`;
+
+  html += `<div style="text-align:center;margin-top:2rem;display:flex;gap:.7rem;justify-content:center;flex-wrap:wrap">
+    <button class="btn btn-outline" onclick="exportAnswers()">复制本次答案</button>
+    <button class="btn btn-outline" onclick="restart()">重新测试</button>
+  </div>`;
+
+  wrap.innerHTML = html;
+  showScreen('results');
+  setTimeout(() => {
+    document.querySelectorAll('.dim-bar').forEach(bar => {
+      const width = bar.style.width;
+      bar.style.width = '0%';
+      requestAnimationFrame(() => { bar.style.width = width; });
+    });
+  }, 100);
+}
+
+async function exportAnswers() {
+  const payload = JSON.stringify({ stage: selectedStage, answers: userAnswers });
+  try {
+    await navigator.clipboard.writeText(payload);
+    alert('本次答案已复制。刷新后点击“导入上次答案”，粘贴即可。');
+  } catch (_) {
+    prompt('请复制下面的答案数据：', payload);
+  }
+}
+
+function importAnswers() {
+  const raw = prompt('请粘贴之前复制的答案数据：');
+  if (!raw) return;
+  try {
+    const payload = JSON.parse(raw);
+    if (!['ongoing', 'ended'].includes(payload.stage) || !payload.answers || typeof payload.answers !== 'object') {
+      throw new Error('invalid payload');
+    }
+    const applicable = QUIZ_DATA.questions.filter(q => q.scene === 'all' || q.scene === payload.stage);
+    const allowedIds = new Set(applicable.map(q => q.id));
+    const imported = {};
+    for (const [qid, value] of Object.entries(payload.answers)) {
+      const answer = String(value).toUpperCase();
+      if (allowedIds.has(qid) && ['A', 'B', 'C', 'D', 'NA'].includes(answer)) imported[qid] = answer;
+    }
+    if (!Object.keys(imported).length) throw new Error('no answers');
+    selectedStage = payload.stage;
+    userAnswers = imported;
+    showResults();
+  } catch (_) {
+    alert('无法识别这份答案。请确认复制了完整内容后再试。');
+  }
+}
+
+function restart() {
+  selectedStage = null;
+  currentQ = 0;
+  userAnswers = {};
+  document.querySelectorAll('.stage-card').forEach(c => {
+    c.classList.remove('selected');
+    c.setAttribute('aria-pressed', 'false');
+  });
+  document.getElementById('startBtn').disabled = true;
+  document.getElementById('quizMeta').textContent = '请选择关系阶段后查看题数';
+  showScreen('intro');
+}
+
+</script>
+</body>
+</html>
