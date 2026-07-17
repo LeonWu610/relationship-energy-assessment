@@ -36,7 +36,7 @@ def _round(value: float) -> float:
 
 def validate_data(data: Mapping[str, Any]) -> list[str]:
     errors: list[str] = []
-    for key in ("schemaVersion", "product", "dimensions", "rules", "scoreKeys", "questions", "reports"):
+    for key in ("schemaVersion", "product", "dimensions", "rules", "scoreKeys", "questions", "reports", "resultPresentation"):
         if key not in data: errors.append(f"顶层缺少 {key}")
     questions = data.get("questions", [])
     if len(questions) != 28: errors.append(f"题目数应为 28，实际为 {len(questions)}")
@@ -81,6 +81,23 @@ def validate_data(data: Mapping[str, Any]) -> list[str]:
     if required-set(data.get("reports", {})): errors.append(f"缺少报告：{sorted(required-set(data.get('reports', {})))}")
     safety_values=[r.get("safety","") for r in data.get("reports",{}).values()]
     if any("当地紧急服务" not in text for text in safety_values): errors.append("报告安全提示不完整")
+    presentation=data.get("resultPresentation",{})
+    relationship_story=presentation.get("relationshipStory",{})
+    for key in ("nourishingAverageMin","nourishingMaxStrongRiskAnswers","supportiveAverageMin","mixedAverageMin"):
+        if key not in relationship_story: errors.append(f"结果规则缺少 relationshipStory.{key}")
+    question_ids={q.get("id") for q in questions}
+    insight_ids:set[str]=set()
+    for rule in presentation.get("insightRules",[]):
+        rule_id=rule.get("id","?")
+        if rule_id in insight_ids: errors.append(f"洞察规则重复：{rule_id}")
+        insight_ids.add(rule_id)
+        if not rule.get("evidenceGroups") or not rule.get("title") or not rule.get("body"): errors.append(f"洞察规则不完整：{rule_id}")
+        if not set(rule.get("stages",[]))<=set(VALID_STAGES): errors.append(f"洞察规则场景非法：{rule_id}")
+        for group in rule.get("evidenceGroups",[]):
+            if group.get("minimum",0)<1 or group.get("minimum",0)>len(group.get("questions",{})): errors.append(f"洞察规则证据门槛非法：{rule_id}")
+            unknown_questions=set(group.get("questions",{}))-question_ids
+            if unknown_questions: errors.append(f"洞察规则引用未知题目：{rule_id}/{sorted(unknown_questions)}")
+            if any(not set(options)<=set("ABCD") for options in group.get("questions",{}).values()): errors.append(f"洞察规则答案非法：{rule_id}")
     return errors
 
 

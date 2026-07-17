@@ -1,181 +1,199 @@
-"""Verify all major result combinations produce meaningful display output.
+"""验证生活画像的评分路径、结果叙事与跨题洞察。"""
+from __future__ import annotations
 
-This simulates what the JS relationshipStory / sourceStory / mainResultStory
-functions would generate for each scenario, without running a browser.
-Covers all 16 LIFE_PROFILES plus a summary of unique result combinations.
-"""
-from stage_a_scoring import score_answers, load_data
+from collections import Counter
+from typing import Any, Mapping
+
+from stage_a_scoring import RELATIONSHIP_KEYS, SOURCE_KEYS, load_data, score_answers
 from test_stage_a_scoring import LIFE_PROFILES
 
-GROWTH_GATE = {"reciprocityMin": 62, "stabilityMin": 62, "repairMin": 62, "selfPreservationMin": 58, "sustainabilityMin": 62}
-PROMINENT_MIN = 38
-TIE_GAP = 5
-MEDIUM_MARGIN_MIN = 6
-
-DIM_LABELS = {"reciprocity": "双方是否都在实际付出", "stability": "相处是否稳定、让你安心", "repair": "闹矛盾后能否一起解决", "selfPreservation": "你是否还能做自己"}
-SRC_LABELS = {"memory": "过去的美好", "potential": "对未来变好的期待", "intermittent": "偶尔出现的热情和高光", "validation": "想确认自己被重视", "loss": "害怕失去这段关系"}
-RELATIONSHIP_KEYS = ("reciprocity", "stability", "repair", "selfPreservation")
-SOURCE_KEYS = ("memory", "potential", "intermittent", "validation", "loss")
+DATA = load_data()
 
 
-def relationship_story(result):
-    rel = result["relationship"]["scores"]
-    if not rel:
-        return {"title": "目前还不足以判断关系状态", "summary": "有效答案较少，这次先不对关系作整体判断。", "detail": "不需要为了得到结论而勉强补答。"}
-    avg = sum(rel.values()) / len(rel)
-    lowest = min(rel, key=rel.get)
-    strongest = max(rel, key=rel.get)
-    stage = result["stage"]
-    prefix = "回看这段关系，" if stage == "ended" else ""
-
-    if result["mutualGrowth"]["met"]:
-        return {"title": "现实相处中有较多双向支持", "summary": f"{prefix}双方大多愿意用实际行动回应彼此；平时的相处让你心里有底，遇到问题后也能重新沟通。同时，你不需要总是压下自己的感受或放弃原来的生活。", "detail": f"{DIM_LABELS[strongest]}是目前表现更好的一面；接下来可以继续留意{DIM_LABELS[lowest]}。"}
-    if avg >= 62:
-        return {"title": "这段经历里有不少现实支持" if stage == "ended" else "关系有现实支撑，也有一处需要继续观察", "summary": f"{prefix}这段相处大部分时候能给你支持，但还有一个重要部分没有那么稳。", "detail": f"目前更值得留意的是{DIM_LABELS[lowest]}，看看它是否正在影响你的安心感和日常状态。"}
-    if avg >= 50:
-        return {"title": "这段经历既有支持，也留下了消耗" if stage == "ended" else "这段关系里，支持与消耗同时存在", "summary": f"{prefix}有些相处让你感到被支持，也有些时候需要你花更多力气才能维持。", "detail": f"最需要回到现实中观察的是{DIM_LABELS[lowest]}：它带来的舒服和压力，哪一种更常出现。"}
-    return {"title": "这段经历带来的压力更明显" if stage == "ended" else "这段关系目前更需要照顾你的消耗感", "summary": f"{prefix}你得到的回应和安心感相对有限；出现问题时，双方也未必能一起处理，或者你常常需要压下自己的感受来维持关系。", "detail": f"其中最需要留意的是{DIM_LABELS[lowest]}，以及它是否持续影响你的情绪、生活和选择。"}
+def interpolate(template: str, values: Mapping[str, str]) -> str:
+    for key, value in values.items():
+        template = template.replace("{" + key + "}", value)
+    return template
 
 
-def source_story(result):
-    sc = result["sourceClassification"]
-    src = result["sources"]
-    report_id = sc["reportId"]
-    status = sc["status"]
-    primary = sc["primary"]
+def relationship_story(result: Mapping[str, Any]) -> dict[str, Any]:
+    config = DATA["resultPresentation"]["relationshipStory"]
+    scores = result["relationship"]["scores"]
+    if not scores:
+        return {**config["insufficient"], "key": "insufficient"}
 
-    if not src:
-        return {"title": "目前还无法判断什么最影响你的投入", "summary": "信息不足，暂不归类。", "report_id": "insufficient_answers"}
+    average = sum(scores.values()) / len(scores)
+    lowest = min(RELATIONSHIP_KEYS, key=lambda key: scores[key])
+    strongest = max(RELATIONSHIP_KEYS, key=lambda key: scores[key])
+    if (
+        result["mutualGrowth"]["met"]
+        and average >= config["nourishingAverageMin"]
+        and result["strongRiskAnswerCount"] <= config["nourishingMaxStrongRiskAnswers"]
+    ):
+        story_key = "growth"
+    elif average >= config["supportiveAverageMin"]:
+        story_key = "supportive"
+    elif average >= config["mixedAverageMin"]:
+        story_key = "mixed"
+    else:
+        story_key = "consuming"
 
-    close = [k for k in sorted(SOURCE_KEYS, key=lambda k: -src[k]) if src[max(src, key=src.get)] - src[k] <= TIE_GAP]
-    close_names = [SRC_LABELS[k] for k in close]
-    primary_names = [SRC_LABELS[k] for k in primary]
+    story = config[story_key]
+    labels = {key: DATA["dimensions"]["relationship"][key]["label"] for key in RELATIONSHIP_KEYS}
+    values = {
+        "historyPrefix": config["historyPrefix"][result["stage"]],
+        "lowestLabel": labels[lowest],
+        "strongestLabel": labels[strongest],
+    }
+    title = story["title"][result["stage"]] if isinstance(story["title"], dict) else story["title"]
+    headline_config = story.get("headline", story["title"])
+    headline = headline_config[result["stage"]] if isinstance(headline_config, dict) else headline_config
+    return {
+        "key": story_key,
+        "level": story.get("level"),
+        "headline": headline,
+        "title": title,
+        "summary": interpolate(story["summary"], values),
+        "detail": interpolate(story["detail"], values),
+    }
 
+
+def source_story(result: Mapping[str, Any]) -> dict[str, Any]:
+    config = DATA["resultPresentation"]["sourceStory"]
+    classification = result["sourceClassification"]
+    status = classification["status"]
+    report_id = config["fallback"]["presentationReportId"] if status == "fallback" else classification["reportId"]
+    report = DATA["reports"].get(report_id, DATA["reports"]["insufficient_answers"])
     if status == "information_insufficient":
-        return {"title": "目前还无法判断什么最影响你的投入", "summary": "信息不足，暂不归类。", "report_id": "insufficient_answers"}
+        return {
+            "title": config[status]["title"],
+            "summary": interpolate(config[status]["summaryTemplate"], {"reportCore": report["core"]}),
+            "report": report,
+        }
     if status == "fallback":
-        return {"title": "没有某一种感受明显左右你的判断", "summary": "过去的美好、对未来变好的期待、偶尔出现的热情、想确认自己被重视，以及害怕失去关系，都没有明显左右你的判断。关系是否适合你，更值得根据双方现实中怎样相处来判断。", "report_id": report_id}
-    if status in ("tie", "multiple"):
-        return {"title": f"{'与'.join(close_names[:2])}共同影响你的判断", "summary": f"这组完整答案同时指向{'、'.join(close_names)}，不适合压缩成一个标签。", "report_id": report_id}
+        return {"title": config[status]["title"], "summary": config[status]["summary"], "report": report}
 
-    margin = src[close[0]] - src[close[1]] if len(close) > 1 else 999
-    boundary = margin < MEDIUM_MARGIN_MIN
-    title = f"{'、'.join(primary_names)}，更容易影响你现在的判断"
-    summary = ""
-    if boundary:
-        summary += " 不过它与下一项比较接近，更适合作为观察方向，而不是固定标签。"
-    if result["sourceClassification"]["unfinished"]:
-        summary += " 答案中也出现了对未完成部分的在意。"
-    return {"title": title, "summary": summary, "report_id": report_id}
+    source_labels = {key: DATA["dimensions"]["sources"][key]["label"] for key in SOURCE_KEYS}
+    top = max(result["sources"].values())
+    close = sorted(SOURCE_KEYS, key=lambda key: (-result["sources"][key], SOURCE_KEYS.index(key)))
+    close = [key for key in close if top - result["sources"][key] <= DATA["rules"]["source"]["tieGap"]]
+    if status in config["combined"]["statuses"]:
+        names = [source_labels[key] for key in close]
+        return {
+            "title": interpolate(config["combined"]["titleTemplate"], {"closeNamesPair": "与".join(names[:2])}),
+            "summary": interpolate(config["combined"]["summaryTemplate"], {"closeNames": "、".join(names)}),
+            "report": report,
+        }
+
+    names = "、".join(source_labels[key] for key in classification["primary"])
+    boundary = result["confidence"]["factors"]["primaryMargin"] < DATA["rules"]["confidence"]["medium"]["primaryMarginMin"]
+    return {
+        "title": interpolate(config["primary"]["titleTemplate"], {"primaryNames": names}),
+        "summary": interpolate(
+            config["primary"]["summaryTemplate"],
+            {
+                "reportCore": report["core"],
+                "boundaryNote": config["primary"]["boundaryNote"] if boundary else "",
+                "unfinishedNote": config["primary"]["unfinishedNote"] if classification["unfinished"] else "",
+            },
+        ),
+        "report": report,
+    }
 
 
-def main_result_story(result, rel, src):
+def main_report_for(result: Mapping[str, Any], relationship: Mapping[str, Any], source: Mapping[str, Any]) -> Mapping[str, Any]:
+    if relationship["key"] == "growth" and result["sourceClassification"]["status"] == "fallback":
+        return DATA["reports"]["mutual_growth"]
+    return source["report"]
+
+
+def action_footnote(result: Mapping[str, Any]) -> str:
+    footnote = DATA["resultPresentation"]["resultDetails"]["actionFootnote"]
+    return footnote if isinstance(footnote, str) else footnote[result["stage"]]
+
+
+def main_result_story(result: Mapping[str, Any], relationship: Mapping[str, Any], source: Mapping[str, Any]) -> dict[str, str]:
+    config = DATA["resultPresentation"]["mainResultStory"]
     status = result["sourceClassification"]["status"]
     if status == "information_insufficient" and not result["relationship"]["scores"]:
-        return {"title": "这次信息还不足，先不用勉强给关系下结论", "lead": '较多题目与你的情况不重合，或你选择了\u201c不确定 / 不适用\u201d。这不是答错，只是本次答案还不足以支持可靠解释。'}
-    if result["mutualGrowth"]["met"] and status == "fallback":
-        return {"title": "你更像是在根据现实相处，判断这段关系", "lead": "这段关系目前给了你较多现实支持。过去的美好、对未来的期待、偶尔的高光、想被重视或害怕失去，都没有明显左右你的判断；你更像是在根据双方当下怎样相处来感受这段关系。"}
-    if result["mutualGrowth"]["met"]:
-        return {"title": "这段关系有现实支撑，也有一种感受在牵动你", "lead": f"{rel['summary']}与此同时，{src['title']}。这两件事可以同时成立。"}
-    if status == "fallback":
-        return {"title": rel["title"], "lead": f"{rel['summary']}没有某一种特定感受明显左右你的判断，所以更值得看现实中的相处，是否持续符合你的需要。"}
-    return {"title": rel["title"], "lead": f"{rel['summary']}同时，{src['title']}；它解释的是你如何理解或留恋这段关系，并不替代对现实相处的判断。"}
+        story = config["insufficient"]
+    elif relationship["key"] == "growth" and status == "fallback":
+        story = config["growthFallback"]
+    elif relationship["key"] == "growth":
+        story = config["growth"]
+    elif status == "fallback":
+        story = config["fallback"]
+    else:
+        story = config["default"]
+    values = {
+        "relationshipTitle": relationship.get("headline", relationship["title"]),
+        "relationshipSummary": relationship["summary"],
+        "sourceTitle": source["title"],
+    }
+    return {
+        "title": story.get("title") or interpolate(story["titleTemplate"], values),
+        "lead": story.get("lead") or interpolate(story["leadTemplate"], values),
+    }
 
 
-data = load_data()
+def select_insights(result: Mapping[str, Any]) -> list[dict[str, Any]]:
+    matches = []
+    for rule in DATA["resultPresentation"].get("insightRules", []):
+        if result["stage"] not in rule["stages"]:
+            continue
+        groups_match = all(
+            sum(result["answers"].get(question_id) in option_ids for question_id, option_ids in group["questions"].items())
+            >= group["minimum"]
+            for group in rule["evidenceGroups"]
+        )
+        if groups_match:
+            matches.append(rule)
+    return sorted(matches, key=lambda rule: -rule["priority"])[:2]
 
-# ── Part 1: All 16 LIFE_PROFILES ──
-print("=" * 70)
-print("全画像场景验证：16 组生活画像 × 叙事结果")
-print("=" * 70)
 
-combos = []  # (growth, srcStatus, stage) signatures for dedup
+def run_checks() -> list[str]:
+    issues: list[str] = []
+    forbidden = ("一处", "没有某一种感受", "保留自己", "符合你的需要", "闹矛盾", "局部收缩", "延后表达", "表面恢复平静", "现实依据", "维持原有生活")
+    combos = []
+    for profile in LIFE_PROFILES:
+        result = score_answers(DATA, profile["answers"], profile["stage"])
+        relationship = relationship_story(result)
+        source = source_story(result)
+        main = main_result_story(result, relationship, source)
+        report = main_report_for(result, relationship, source)
+        text = " ".join((main["title"], main["lead"], relationship["title"], relationship["detail"], source["title"], source["summary"], report["risks"], *report["signals"], *report["actions"], report["share"], action_footnote(result)))
+        combos.append((relationship["key"], result["sourceClassification"]["status"], result["stage"]))
+        for phrase in forbidden:
+            if phrase in text:
+                issues.append(f"{profile['id']} 命中禁用表达：{phrase}")
+        if not main["title"] or not main["lead"]:
+            issues.append(f"{profile['id']} 主结果为空")
+        if result["stage"] == "ended" and result["mutualGrowth"]["met"]:
+            issues.append(f"{profile['id']} ended 不应命中双向生长")
 
-for i, profile in enumerate(LIFE_PROFILES):
-    r = score_answers(data, profile["answers"], profile["stage"])
-    rel = relationship_story(r)
-    src = source_story(r)
-    main = main_result_story(r, rel, src)
-    sc = r["sourceClassification"]
+    real = next(profile for profile in DATA["testPresets"]["items"] if profile["id"] == "preset-08")
+    result = score_answers(DATA, real["answers"], real["stage"])
+    relationship = relationship_story(result)
+    insight_ids = [rule["id"] for rule in select_insights(result)]
+    if relationship["key"] != "supportive" or relationship["headline"] != "这段关系，确实给了你很多安心":
+        issues.append("真实结果未落入‘这段关系，确实给了你很多安心’")
+    if relationship["title"] != "这段关系给你的安心，多过疲惫":
+        issues.append("真实结果的分析结论断句不正确")
+    if "repair_entry_gap" not in insight_ids:
+        issues.append("真实结果未识别‘问题进入对话前的卡点’")
+    if "partial_life_contraction" not in insight_ids:
+        issues.append("真实结果未识别‘部分安排开始为关系让路’")
 
-    combo = (r["mutualGrowth"]["met"], sc["status"], r["stage"])
-    combos.append(combo)
+    print(f"已检查 {len(LIFE_PROFILES)} 组生活画像，共 {len(Counter(combos))} 种展示组合。")
+    print("真实结果：", relationship["headline"], "；洞察：", "、".join(insight_ids))
+    return issues
 
-    rel_scores = r["relationship"]["scores"]
-    avg_str = f"{sum(rel_scores.values())/len(rel_scores):.1f}" if rel_scores else "N/A"
-    src_scores = r["sources"]
-    top_src = max(src_scores, key=src_scores.get) if src_scores else "N/A"
-    top_val = f"{src_scores[top_src]:.1f}" if src_scores else "N/A"
 
-    print(f"\n{'─' * 60}")
-    print(f"📌 L{i+1:02d} {profile['name']}  ({profile['stage']})")
-    print(f"   narrative: {profile['narrative']}")
-    print(f"   signature: growth={r['mutualGrowth']['met']}, srcStatus={sc['status']}, primary={sc['primary']}")
-    print(f"   rel avg={avg_str}, top_source={top_src}({top_val})")
-    print(f"")
-    print(f"   🏷️  主标题: {main['title']}")
-    print(f"   📝  引导句: {main['lead'][:100]}{'...' if len(main['lead'])>100 else ''}")
-    print(f"   🏠  现实相处: {rel['title']}")
-    print(f"   🔗  什么在影响判断和投入: {src['title']}")
-
-# ── Part 2: Unique combination summary ──
-print(f"\n{'=' * 70}")
-print("组合签名去重统计")
-print("=" * 70)
-from collections import Counter
-combo_counts = Counter(combos)
-for combo, count in sorted(combo_counts.items()):
-    print(f"  growth={combo[0]}, srcStatus={combo[1]:<25s} stage={combo[2]}  ×{count}")
-
-unique = len(combo_counts)
-print(f"\n共 {len(LIFE_PROFILES)} 个画像，{unique} 种唯一结果组合")
-
-# ── Part 3: Critical-path assertions ──
-print(f"\n{'=' * 70}")
-print("关键路径断言")
-print("=" * 70)
-
-issues = []
-
-# 1. growth+ended should never happen (ended makes growth not applicable)
-for i, profile in enumerate(LIFE_PROFILES):
-    r = score_answers(data, profile["answers"], profile["stage"])
-    if r["stage"] == "ended" and r["mutualGrowth"]["met"]:
-        issues.append(f"L{i+1:02d}: ended 场景不应有 mutualGrowth.met=True")
-
-# 2. Every profile must produce a non-empty main title
-for i, profile in enumerate(LIFE_PROFILES):
-    r = score_answers(data, profile["answers"], profile["stage"])
-    rel = relationship_story(r)
-    src = source_story(r)
-    main = main_result_story(r, rel, src)
-    if not main.get("title"):
-        issues.append(f"L{i+1:02d}: 主标题为空")
-    if not main.get("lead"):
-        issues.append(f"L{i+1:02d}: 引导句为空")
-
-# 3. growth=True should imply rel avg >= 62
-for i, profile in enumerate(LIFE_PROFILES):
-    r = score_answers(data, profile["answers"], profile["stage"])
-    if r["mutualGrowth"]["met"] and r["relationship"]["scores"]:
-        avg = sum(r["relationship"]["scores"].values()) / len(r["relationship"]["scores"])
-        if avg < 62:
-            issues.append(f"L{i+1:02d}: growth=True 但 rel avg={avg:.1f} < 62")
-
-# 4. fallback status should mean top source < prominentMin
-for i, profile in enumerate(LIFE_PROFILES):
-    r = score_answers(data, profile["answers"], profile["stage"])
-    if r["sourceClassification"]["status"] == "fallback" and r["sources"]:
-        top = max(r["sources"].values())
-        if top >= 38:
-            issues.append(f"L{i+1:02d}: fallback 但 top source={top:.1f} >= 38")
-
-if issues:
-    print("❌ 发现问题：")
-    for issue in issues:
-        print(f"  - {issue}")
-else:
-    print("✅ 所有关键路径断言通过")
-
-print(f"\n{'=' * 70}")
-print("验证完毕。")
+if __name__ == "__main__":
+    failures = run_checks()
+    if failures:
+        print("发现问题：")
+        for failure in failures:
+            print("-", failure)
+        raise SystemExit(1)
+    print("所有结果叙事与洞察检查通过。")

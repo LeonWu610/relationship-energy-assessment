@@ -898,7 +898,9 @@ function relationshipStory(result, dimLabels) {
   const average = values.reduce((sum, value) => sum + value, 0) / values.length;
   const lowestKey = [...RELATIONSHIP_KEYS].sort((a, b) => result.relationship[a] - result.relationship[b])[0];
   const strongestKey = [...RELATIONSHIP_KEYS].sort((a, b) => result.relationship[b] - result.relationship[a])[0];
-  const storyKey = result.growth ? 'growth' : average >= config.supportiveAverageMin ? 'supportive' : average >= config.mixedAverageMin ? 'mixed' : 'consuming';
+  const storyKey = result.growth && average >= config.nourishingAverageMin && result.strongRiskCount <= config.nourishingMaxStrongRiskAnswers
+    ? 'growth'
+    : average >= config.supportiveAverageMin ? 'supportive' : average >= config.mixedAverageMin ? 'mixed' : 'consuming';
   const story = config[storyKey];
   const valuesForTemplate = {
     historyPrefix: config.historyPrefix[result.stage],
@@ -906,10 +908,30 @@ function relationshipStory(result, dimLabels) {
     strongestLabel: dimLabels[strongestKey]
   };
   return {
+    headline: story.headline ? (typeof story.headline === 'object' ? story.headline[result.stage] : story.headline) : (typeof story.title === 'object' ? story.title[result.stage] : story.title),
     title: typeof story.title === 'object' ? story.title[result.stage] : story.title,
     summary: interpolate(story.summary, valuesForTemplate),
-    detail: interpolate(story.detail, valuesForTemplate)
+    detail: interpolate(story.detail, valuesForTemplate),
+    level: story.level,
+    key: storyKey
   };
+}
+
+function matchInsightRule(rule, result) {
+  if (!rule.stages.includes(result.stage)) return false;
+  return rule.evidenceGroups.every(group => {
+    const matches = Object.entries(group.questions).filter(([questionId, optionIds]) =>
+      optionIds.includes(result.answers[questionId])
+    ).length;
+    return matches >= group.minimum;
+  });
+}
+
+function selectInsights(result) {
+  return [...(QUIZ_DATA.resultPresentation.insightRules || [])]
+    .sort((a, b) => b.priority - a.priority)
+    .filter(rule => matchInsightRule(rule, result))
+    .slice(0, 2);
 }
 
 function sourceStory(result, reports, srcLabels) {
@@ -947,15 +969,25 @@ function sourceStory(result, reports, srcLabels) {
   };
 }
 
+function mainReportFor(result, relationship, source, reports) {
+  if (relationship.key === 'growth' && result.srcStatus === 'fallback') return reports.mutual_growth;
+  return source.report;
+}
+
+function actionFootnote(result) {
+  const footnote = QUIZ_DATA.resultPresentation.resultDetails.actionFootnote;
+  return typeof footnote === 'string' ? footnote : footnote[result.stage];
+}
+
 function mainResultStory(result, relationship, source) {
   const config = QUIZ_DATA.resultPresentation.mainResultStory;
   let story;
   if (result.srcStatus === 'information_insufficient' && !result.relationship) story = config.insufficient;
-  else if (result.growth && result.srcStatus === 'fallback') story = config.growthFallback;
-  else if (result.growth) story = config.growth;
+  else if (relationship.key === 'growth' && result.srcStatus === 'fallback') story = config.growthFallback;
+  else if (relationship.key === 'growth') story = config.growth;
   else if (result.srcStatus === 'fallback') story = config.fallback;
   else story = config.default;
-  const values = { relationshipTitle: relationship.title, relationshipSummary: relationship.summary, sourceTitle: source.title };
+  const values = { relationshipTitle: relationship.headline || relationship.title, relationshipSummary: relationship.summary, sourceTitle: source.title };
   return {
     title: story.title || interpolate(story.titleTemplate, values),
     lead: story.lead || interpolate(story.leadTemplate, values)
@@ -975,7 +1007,10 @@ function showResults() {
   const relationship = relationshipStory(result, dimLabels);
   const source = sourceStory(result, reports, srcLabels);
   const main = mainResultStory(result, relationship, source);
-  const mainReport = source.report;
+  const mainReport = mainReportFor(result, relationship, source, reports);
+  const insights = selectInsights(result);
+  const insightSignals = insights.flatMap(insight => insight.signals);
+  const insightActions = insights.flatMap(insight => insight.actions);
   const wrap = document.getElementById('resultsWrap');
 
   let html = `<div class="result-header fade-up">
@@ -1028,15 +1063,23 @@ function showResults() {
     </div></div>`;
   }
 
+  if (insights.length) {
+    html += `<div class="result-card fade-up"><h3>答案里藏着的相处模式</h3>
+      ${insights.map(insight => `<div class="insight-block"><strong>${insight.title}</strong><p>${insight.body}</p></div>`).join('')}
+    </div>`;
+  }
+
+  const nextSignals = (insightSignals.length ? insightSignals : mainReport.signals).slice(0, 3);
   html += `<div class="result-card fade-up">
     <h3>接下来最值得看</h3>
-    <ul class="signal-list">${mainReport.signals.slice(0, 2).map(item => `<li>${item}</li>`).join('')}</ul>
+    <ul class="signal-list">${nextSignals.map(item => `<li>${item}</li>`).join('')}</ul>
     <p style="margin-top:.8rem"><strong>别忽略：</strong>${mainReport.risks}</p>
   </div>`;
 
-  html += `<div class="result-card fade-up"><h3>可以马上做的两件小事</h3><ul class="action-list">
-    ${mainReport.actions.slice(0, 2).map(item => `<li>${item}</li>`).join('')}
-  </ul><p style="font-size:.82rem;color:var(--text-secondary);margin-top:.6rem">${QUIZ_DATA.resultPresentation.resultDetails.actionFootnote}</p></div>`;
+  const nextActions = (insightActions.length ? insightActions : mainReport.actions).slice(0, 2);
+  html += `<div class="result-card fade-up"><h3>可以马上做的两件事</h3><ul class="action-list">
+    ${nextActions.map(item => `<li>${item}</li>`).join('')}
+  </ul><p style="font-size:.82rem;color:var(--text-secondary);margin-top:.6rem">${actionFootnote(result)}</p></div>`;
 
   html += `<div class="result-card fade-up" style="text-align:center;background:var(--accent-light)">
     <p style="font-size:1.08rem;font-weight:600;color:var(--primary)">“${mainReport.share}”</p>
