@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>这段关系，正在滋养你，还是消耗你？</title>
+<title>这段关系，给你的更多是滋养，还是消耗？</title>
 <style>
 :root {
   --bg: #faf8f5;
@@ -21,6 +21,7 @@
   --shadow: 0 2px 16px rgba(90,70,100,0.08);
 }
 * { margin:0; padding:0; box-sizing:border-box; }
+[hidden] { display: none !important; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
   background: var(--bg);
@@ -152,6 +153,15 @@ body {
   font-weight: 600;
   margin-bottom: 1.2rem;
   line-height: 1.6;
+}
+.q-note {
+  margin: -.55rem 0 1rem;
+  padding: .65rem .8rem;
+  border-left: 3px solid var(--accent);
+  background: rgba(240, 223, 200, .45);
+  color: var(--text-secondary);
+  font-size: .8rem;
+  line-height: 1.55;
 }
 .q-options { display: flex; flex-direction: column; gap: .7rem; }
 .q-option {
@@ -304,6 +314,48 @@ body {
   color: var(--text-secondary);
   background: #fff;
 }
+.evidence-block + .evidence-block { margin-top: 1rem; }
+.evidence-block h4 { margin-bottom: .4rem; color: var(--text); font-size: .9rem; }
+.answer-evidence { list-style: none; padding: 0 !important; }
+.answer-evidence li {
+  position: relative;
+  margin-bottom: .5rem;
+  padding: .65rem .75rem .65rem 2.7rem;
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text-secondary);
+}
+.answer-evidence .evidence-id {
+  position: absolute;
+  left: .7rem;
+  top: .68rem;
+  color: var(--primary);
+  font-weight: 700;
+  font-size: .76rem;
+}
+.answer-evidence .evidence-kind { display: block; margin-bottom: .15rem; color: var(--primary); font-size: .74rem; font-weight: 600; }
+.explanation-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; }
+.explanation-item { padding: .9rem; border-radius: 12px; background: var(--bg); }
+.explanation-item strong { display: block; margin-bottom: .25rem; color: var(--primary); font-size: .88rem; }
+.explanation-item p { color: var(--text-secondary); font-size: .86rem; }
+.context-note, .boundary-note, .action-safety {
+  margin-top: .75rem;
+  padding: .7rem .8rem;
+  border-radius: 10px;
+  background: rgba(240, 223, 200, .45);
+  color: var(--text-secondary);
+  font-size: .82rem !important;
+}
+.action-safety { border-left: 3px solid var(--accent); }
+.sustainability-summary {
+  margin-top: .75rem;
+  padding-top: .75rem;
+  border-top: 1px dashed var(--border);
+  color: var(--text-secondary);
+  font-size: .84rem;
+}
+.share-actions { display: flex; justify-content: center; margin-top: .8rem; }
+.comment-prompt { margin-top: .8rem; color: var(--text-secondary); font-size: .82rem !important; }
 .result-boundary {
   border-top: 1px solid var(--border);
   margin-top: .9rem;
@@ -335,6 +387,8 @@ body {
   padding-left: 1.2rem;
   margin: .3rem 0;
 }
+.insight-block + .insight-block { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+.insight-proof { margin-top: .45rem; color: var(--text-secondary); font-size: .78rem !important; }
 
 /* dimension bars */
 .dim-row {
@@ -419,6 +473,7 @@ body {
 .load-status { min-height: 1.5rem; margin-top: .75rem; font-size: .82rem; color: var(--text-secondary); }
 .load-status.error { max-width: 420px; padding: .75rem 1rem; border: 1px solid #f0d0d0; border-radius: 12px; background: #fdf0f0; color: #8a5050; }
 .preset-section { width: min(100%, 560px); margin-top: 2rem; padding: 1.2rem; border: 1px solid var(--border); border-radius: 20px; background: rgba(255,255,255,.72); text-align: left; box-shadow: var(--shadow); }
+.preset-section[hidden] { display: none; }
 .preset-section h2 { font-size: 1.08rem; color: var(--primary); }
 .preset-intro { margin: .3rem 0 1rem; color: var(--text-secondary); font-size: .84rem; }
 .preset-group + .preset-group { margin-top: 1rem; }
@@ -442,7 +497,7 @@ body {
   #intro h1 { font-size: 1.3rem; }
   .stage-card { padding: 1rem .6rem; }
   .q-stem { font-size: 1rem; }
-  .source-grid, .story-grid { grid-template-columns: 1fr; }
+  .source-grid, .story-grid, .explanation-grid { grid-template-columns: 1fr; }
   #results { padding: 1rem; }
   .result-header { padding: 1.35rem; }
   .result-header .result-type { font-size: 1.4rem; }
@@ -459,30 +514,32 @@ body {
 <!-- ======== INTRO ======== -->
 <div id="intro" class="screen active">
   <div class="logo">🌿</div>
-  <h1>这段关系，正在滋养你，还是消耗你？</h1>
-  <p class="subtitle">你舍不得的，是他，还是那个没有完成的结局？</p>
+  <h1>这段关系，给你的更多是滋养，还是消耗？</h1>
+  <p class="subtitle">看清现实相处，也看见什么正在影响你的判断和投入。</p>
   <div class="disclaimer">
-    本测试为自我觉察与娱乐内容，不构成心理、医疗、法律或关系决策建议。所有阈值均为首版产品规则，待真实认知访谈校准，不代表心理测量学效度。
+    这是一份基于真实相处情境的自我觉察测试，不是心理诊断，也不替你决定分手或复合。
   </div>
-  <p style="font-size:.86rem;color:var(--text-secondary);max-width:340px;margin-bottom:1.2rem;text-align:left;">如果最近没有发生题目里的情况，请按目前的相处状态，选择你认为更可能出现的一项；确实无法判断时，可以选“不确定 / 不适用”。</p>
+  <p style="font-size:.86rem;color:var(--text-secondary);max-width:340px;margin-bottom:1.2rem;text-align:left;">只按真实发生过的情况作答，不需要猜测“如果发生会怎样”。没有发生过、无法判断或不想回答时，可以选“不确定 / 不适用”。</p>
   <p style="font-size:.92rem;color:var(--text-secondary);margin-bottom:1rem;">请选择你当前的关系状态：</p>
   <div class="stage-select">
     <div class="stage-card selected" data-stage="ongoing" role="button" tabindex="0" aria-pressed="true">
       <div class="icon">🔄</div>
-      <div class="label">仍在关系中</div>
-      <div class="desc">你们目前仍在互动</div>
+      <div class="label">关系仍在发生</div>
+      <div class="desc">包括恋爱、暧昧、拉扯，或尚未明确结束</div>
     </div>
     <div class="stage-card" data-stage="ended" role="button" tabindex="0" aria-pressed="false">
       <div class="icon">🍂</div>
-      <div class="label">已经分开</div>
-      <div class="desc">关系已结束</div>
+      <div class="label">关系已经结束</div>
+      <div class="desc">已经分开，现在主要是在回看或整理</div>
     </div>
   </div>
   <button class="btn btn-primary" id="startBtn" disabled>开始测试</button>
-  <button class="btn btn-outline" id="importBtn" style="margin-top:.7rem" disabled>导入上次答案</button>
+  <button class="btn btn-outline" id="resumeBtn" style="margin-top:.7rem" disabled hidden>继续上次作答</button>
+  <button class="btn btn-outline" id="importBtn" style="margin-top:.7rem" disabled hidden>导入测试答案</button>
   <p id="quizMeta" style="font-size:.78rem;color:var(--text-secondary);margin-top:.8rem;">正在加载题库与结果数据…</p>
+  <p style="font-size:.74rem;color:var(--text-secondary);margin-top:.25rem;">未完成的作答会保存在当前浏览器中，完成后自动清除。</p>
   <p id="loadStatus" class="load-status" role="status" aria-live="polite"></p>
-  <section class="preset-section" aria-labelledby="presetTitle">
+  <section class="preset-section" aria-labelledby="presetTitle" hidden>
     <h2 id="presetTitle">快速查看模拟结果</h2>
     <p class="preset-intro">内部测试入口：点击生活化预设可直接计算并打开结果页，不经过逐题作答。</p>
     <div id="presetGroups"></div>
@@ -508,6 +565,7 @@ body {
 let QUIZ_DATA = null;
 let dataReady = false;
 const DATA_URL = './阶段A_题库与报告_v1.0.json';
+const DEBUG_PRESETS = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('debug') === '1';
 const RELATIONSHIP_KEYS = ["reciprocity","stability","repair","selfPreservation"];
 const SUSTAINABILITY_KEYS = ["stability","repair","selfPreservation"];
 const SOURCE_KEYS = ["memory","potential","intermittent","validation","loss"];
@@ -535,6 +593,11 @@ function _normalize(raw, mn, mx) {
   return _round2(100 * (raw - mn) / (mx - mn));
 }
 
+function questionWeight(question, stage) {
+  const recentStages = question.recentStages || ["ongoing","ended"];
+  return question.recent && recentStages.includes(stage) ? QUIZ_DATA.rules.recentQuestionWeight : 1;
+}
+
 function scoreAnswers(answers, stage) {
   if (!requireDataReady()) throw new Error('题库尚未加载完成');
   const rules = QUIZ_DATA.rules;
@@ -559,7 +622,7 @@ function scoreAnswers(answers, stage) {
   let answered = 0, sourceAnswered = 0, relAnswered = 0, strong = 0;
   const relApplicable = questions.filter(q => q.relationshipApplicability.includes(stage)).length;
   const sourceApplicable = questions.filter(q => q.sourceApplicable).length;
-  let unfinishedWeight = 0;
+  let unfinishedWeight = 0, practicalWeight = 0;
   const outAnswers = {};
 
   for (const q of questions) {
@@ -571,7 +634,7 @@ function scoreAnswers(answers, stage) {
     answered++;
     if (q.sourceApplicable) sourceAnswered++;
     const option = q.options.find(o => o.id === answer);
-    const weight = q.recent ? rules.recentQuestionWeight : 1.0;
+    const weight = questionWeight(q, stage);
 
     if (q.sourceApplicable) {
       for (const k of SOURCE_KEYS) {
@@ -580,6 +643,7 @@ function scoreAnswers(answers, stage) {
         srcMax[k] += maxOpt * weight;
       }
       if ((option.tags || []).includes("unfinished")) unfinishedWeight += weight;
+      if ((option.tags || []).includes("practical_constraint")) practicalWeight += weight;
     }
 
     if (q.relationshipApplicability.includes(stage)) {
@@ -599,11 +663,16 @@ function scoreAnswers(answers, stage) {
   const sceneCov = relApplicable ? relAnswered / relApplicable : 0;
   const cov = rules.coverage;
 
-  const srcComputable = totalCov >= cov.totalAnsweredRatioMin && srcCov >= cov.sourceAnsweredRatioMin;
-  const relComputable = relAnswered >= cov.relationshipMinApplicableQuestions && sceneCov >= cov.relationshipApplicableRatioMin;
+  const srcComputable = srcCov >= cov.sourceAnsweredRatioMin;
+  const relMinimum = (cov.relationshipMinApplicableQuestionsByStage || {})[stage] ?? cov.relationshipMinApplicableQuestions;
+  const relComputable = relAnswered >= relMinimum && sceneCov >= cov.relationshipApplicableRatioMin;
 
   const relationship = relComputable
     ? RELATIONSHIP_KEYS.reduce((o,k) => { o[k] = _normalize(relRaw[k], relMin[k], relMax[k]); return o; }, {})
+    : null;
+
+  const relationshipAverage = relationship
+    ? _round2(RELATIONSHIP_KEYS.reduce((sum, key) => sum + relationship[key], 0) / RELATIONSHIP_KEYS.length)
     : null;
 
   const sustainability = relationship
@@ -614,34 +683,40 @@ function scoreAnswers(answers, stage) {
     ? SOURCE_KEYS.reduce((o,k) => { o[k] = srcMax[k] === 0 ? 0 : _round2(100 * srcRaw[k] / srcMax[k]); return o; }, {})
     : null;
 
-  // Growth gate
-  let growth = false, growthReason = null;
+  // “双向生长”只描述 ongoing；ended 只允许回看过去是否有充分滋养证据。
+  let growth = false, historicalNourishing = false, growthReason = null;
   const g = rules.growthGate;
-  if (!g.applicableStages.includes(stage)) {
-    growthReason = g.endedNotApplicableReason;
-  } else if (relationship) {
-    growth = relationship.reciprocity >= g.reciprocityMin
+  const relationshipStoryRules = QUIZ_DATA.resultPresentation.relationshipStory;
+  const nourishingEvidence = Boolean(relationship
+          && sceneCov >= g.relationshipCoverageMin
+          && relationshipAverage >= g.relationshipAverageMin
+          && relationship.reciprocity >= g.reciprocityMin
           && relationship.stability >= g.stabilityMin
           && relationship.repair >= g.repairMin
           && relationship.selfPreservation >= g.selfPreservationMin
           && sustainability >= g.sustainabilityMin
-          && strong <= g.maxStrongRiskAnswers;
+          && strong <= g.maxStrongRiskAnswers);
+  if (!g.applicableStages.includes(stage)) {
+    growthReason = g.endedNotApplicableReason;
+    historicalNourishing = nourishingEvidence;
+  } else if (relationship) {
+    growth = nourishingEvidence;
   }
 
   // Source classification
   const srcRule = rules.source;
-  let primary = [], secondary = [], margin = 0, srcStatus = "information_insufficient", reportId = "insufficient_answers";
+  let primary = [], secondary = [], ranked = [], margin = 0, top = 0, srcStatus = "information_insufficient", reportId = "insufficient_answers";
   if (sources) {
     const order = srcRule.fixedOrder;
-    const ranked = [...SOURCE_KEYS].sort((a,b) => sources[b] - sources[a] || order.indexOf(a) - order.indexOf(b));
-    const top = sources[ranked[0]];
+    ranked = [...SOURCE_KEYS].sort((a,b) => sources[b] - sources[a] || order.indexOf(a) - order.indexOf(b));
+    top = sources[ranked[0]];
     margin = top - sources[ranked[1]];
     const near = ranked.filter(k => top - sources[k] <= srcRule.tieGap);
 
     if (top < srcRule.prominentMin) {
-      // fallbackRule: 取最高分来源为主结果；仅最高分为0时输出 insufficient_answers
+      // 有少量信号时保留弱领先项；全为 0 表示“五类均不突出”，不等于信息不足。
       if (top === 0) {
-        srcStatus = "information_insufficient"; reportId = "insufficient_answers";
+        srcStatus = "not_prominent"; reportId = "sources_not_prominent";
       } else {
         srcStatus = "fallback"; primary = [ranked[0]];
         reportId = QUIZ_DATA.dimensions.sources[primary[0]].resultId;
@@ -660,26 +735,35 @@ function scoreAnswers(answers, stage) {
   }
 
   // Confidence
-  let thresholds = [];
+  let sourceDecisionDistances = [];
   if (sources) {
-    thresholds.push(
-      Math.abs(Math.max(...Object.values(sources)) - srcRule.prominentMin),
-      Math.abs(margin - srcRule.tieGap),
-      Math.abs(margin - srcRule.secondaryGap)
-    );
+    sourceDecisionDistances.push(Math.abs(top - srcRule.prominentMin));
+    if (srcStatus === "primary") {
+      sourceDecisionDistances.push(Math.abs(margin - srcRule.tieGap), Math.abs(margin - srcRule.secondaryGap));
+    } else if (srcStatus === "tie") {
+      sourceDecisionDistances.push(Math.abs(margin - srcRule.tieGap));
+      if (ranked.length >= 3) sourceDecisionDistances.push(Math.abs((top - sources[ranked[2]]) - srcRule.tieGap));
+    } else if (srcStatus === "multiple" && ranked.length >= 3) {
+      sourceDecisionDistances.push(Math.abs((top - sources[ranked[2]]) - srcRule.tieGap));
+    }
   }
+  let thresholds = [...sourceDecisionDistances];
   if (relationship) {
     for (const k of RELATIONSHIP_KEYS) thresholds.push(Math.abs(relationship[k] - g[`${k}Min`]));
     thresholds.push(Math.abs(sustainability - g.sustainabilityMin));
+    for (const key of ["mixedAverageMin","supportiveAverageMin","nourishingAverageMin"]) {
+      thresholds.push(Math.abs(relationshipAverage - relationshipStoryRules[key]));
+    }
   }
   const thresholdDist = thresholds.length ? Math.min(...thresholds) : 0;
 
   let confLevel = "insufficient";
-  if (srcComputable) {
+  if (srcComputable || relComputable) {
     const h = rules.confidence.high, m = rules.confidence.medium;
-    if (totalCov >= h.totalCoverageMin && srcCov >= h.sourceCoverageMin && sceneCov >= h.sceneCoverageMin && margin >= h.primaryMarginMin && thresholdDist >= h.thresholdDistanceMin) {
+    const confidenceMargin = srcStatus === "primary" ? margin : 100;
+    if (totalCov >= h.totalCoverageMin && srcCov >= h.sourceCoverageMin && sceneCov >= h.sceneCoverageMin && confidenceMargin >= h.primaryMarginMin && thresholdDist >= h.thresholdDistanceMin) {
       confLevel = "high";
-    } else if (totalCov >= m.totalCoverageMin && srcCov >= m.sourceCoverageMin && sceneCov >= m.sceneCoverageMin && margin >= m.primaryMarginMin && thresholdDist >= m.thresholdDistanceMin) {
+    } else if (totalCov >= m.totalCoverageMin && srcCov >= m.sourceCoverageMin && sceneCov >= m.sceneCoverageMin && confidenceMargin >= m.primaryMarginMin && thresholdDist >= m.thresholdDistanceMin) {
       confLevel = "medium";
     } else {
       confLevel = "low";
@@ -687,15 +771,22 @@ function scoreAnswers(answers, stage) {
   }
 
   const unfinished = srcComputable ? unfinishedWeight >= srcRule.unfinishedEvidenceWeightMin : false;
+  const practicalContext = srcComputable ? practicalWeight >= srcRule.practicalEvidenceWeightMin : false;
+  const relationshipBoundaryDistance = relationship
+    ? Math.min(...["mixedAverageMin","supportiveAverageMin","nourishingAverageMin"].map(key => Math.abs(relationshipAverage - relationshipStoryRules[key])))
+    : null;
+  const sourceBoundaryDistance = sourceDecisionDistances.length ? Math.min(...sourceDecisionDistances) : null;
 
   return {
-    stage, relationship, sustainability, sources, growth, growthReason,
-    srcStatus, primary, secondary, reportId, unfinished, unfinishedWeight,
+    stage, relationship, relationshipAverage, sustainability, sources, growth, historicalNourishing, nourishingEvidence, growthReason,
+    srcStatus, primary, secondary, reportId, unfinished, unfinishedWeight, practicalContext, practicalWeight,
     sourceTop: sources ? Math.max(...Object.values(sources)) : null,
     sourceMargin: sources ? _round2(margin) : null,
     confidence: confLevel, strongRiskCount: strong,
     totalCov: _round2(totalCov), srcCov: _round2(srcCov), sceneCov: _round2(sceneCov),
-    answeredCount: answered, applicableCount: questions.length,
+    relationshipBoundaryNear: relationshipBoundaryDistance !== null && relationshipBoundaryDistance < 3,
+    sourceBoundaryNear: sourceBoundaryDistance !== null && sourceBoundaryDistance < 3,
+    relMinimum, answeredCount: answered, applicableCount: questions.length,
     answers: outAnswers
   };
 }
@@ -707,11 +798,63 @@ let selectedStage = null;
 let currentQ = 0;
 let userAnswers = {};
 let quizQuestions = [];
+const DRAFT_KEY = 'relationship-energy-assessment-draft-v1.2';
 
 // ---- Intro ----
 function stageQuestionCount(stage) {
   if (!requireDataReady()) return 0;
   return QUIZ_DATA.questions.filter(q => q.scene === 'all' || q.scene === stage).length;
+}
+
+function readDraft() {
+  if (!requireDataReady()) return null;
+  try {
+    const draft = JSON.parse(window.localStorage.getItem(DRAFT_KEY) || 'null');
+    if (!draft || !['ongoing','ended'].includes(draft.stage) || !draft.answers || typeof draft.answers !== 'object') return null;
+    const questions = QUIZ_DATA.questions.filter(q => q.scene === 'all' || q.scene === draft.stage);
+    const allowed = new Map(questions.map(q => [q.id, new Set(['A','B','C','D','NA'])]));
+    const answers = {};
+    for (const question of questions) {
+      const value = draft.answers[question.id];
+      answers[question.id] = allowed.get(question.id).has(value) ? value : null;
+    }
+    if (!Object.values(answers).some(value => value !== null)) return null;
+    return { stage: draft.stage, answers, currentQ: Math.max(0, Math.min(Number(draft.currentQ) || 0, questions.length - 1)) };
+  } catch (_) {
+    return null;
+  }
+}
+
+function refreshResumeButton() {
+  const button = document.getElementById('resumeBtn');
+  const draft = readDraft();
+  button.hidden = !draft;
+  button.disabled = !dataReady || !draft;
+  if (draft) button.textContent = `继续上次作答（${draft.stage === 'ongoing' ? '关系仍在发生' : '关系已经结束'}）`;
+}
+
+function saveDraft() {
+  if (!selectedStage || !quizQuestions.length) return;
+  try {
+    window.localStorage.setItem(DRAFT_KEY, JSON.stringify({ stage: selectedStage, currentQ, answers: userAnswers }));
+  } catch (_) {}
+  refreshResumeButton();
+}
+
+function clearDraft() {
+  try { window.localStorage.removeItem(DRAFT_KEY); } catch (_) {}
+  refreshResumeButton();
+}
+
+function resumeDraft() {
+  const draft = readDraft();
+  if (!draft) return;
+  selectedStage = draft.stage;
+  quizQuestions = QUIZ_DATA.questions.filter(q => q.scene === 'all' || q.scene === selectedStage);
+  userAnswers = draft.answers;
+  currentQ = draft.currentQ;
+  showScreen('quiz');
+  renderQuestion();
 }
 
 function setInteractiveReady(ready) {
@@ -720,11 +863,14 @@ function setInteractiveReady(ready) {
     card.tabIndex = ready ? 0 : -1;
   });
   document.getElementById('importBtn').disabled = !ready;
+  document.getElementById('resumeBtn').disabled = !ready || !readDraft();
   document.querySelectorAll('.preset-button').forEach(button => { button.disabled = !ready; });
   document.getElementById('startBtn').disabled = !ready || !selectedStage;
 }
 
 function renderPresets() {
+  if (!DEBUG_PRESETS) return;
+  document.querySelector('.preset-section').hidden = false;
   const container = document.getElementById('presetGroups');
   const { groups, items } = QUIZ_DATA.testPresets;
   container.innerHTML = groups.map(group => `
@@ -758,13 +904,15 @@ async function initializeQuiz() {
     const response = await fetch(DATA_URL, { cache: 'no-store' });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     loadQuizData(await response.json());
-    renderPresets();
+    if (DEBUG_PRESETS) renderPresets();
+    if (DEBUG_PRESETS) document.getElementById('importBtn').hidden = false;
     status.classList.remove('error');
-    status.textContent = '题库与结果数据已加载，可以开始测试或快速查看模拟结果。';
+    status.textContent = DEBUG_PRESETS ? '题库已加载，可以开始测试或快速查看模拟结果。' : '题库已加载，可以开始测试。';
     document.getElementById('quizMeta').textContent = selectedStage
       ? `本阶段共 ${stageQuestionCount(selectedStage)} 题 · 约 5-8 分钟`
       : '请选择关系阶段后查看题数';
     setInteractiveReady(true);
+    refreshResumeButton();
   } catch (error) {
     console.error('Failed to load quiz data:', error);
     status.classList.add('error');
@@ -797,6 +945,7 @@ document.querySelectorAll('.stage-card').forEach(card => {
   });
 });
 document.getElementById('importBtn').addEventListener('click', importAnswers);
+document.getElementById('resumeBtn').addEventListener('click', resumeDraft);
 
 document.getElementById('startBtn').addEventListener('click', () => {
   if (!requireDataReady() || !selectedStage) return;
@@ -804,6 +953,7 @@ document.getElementById('startBtn').addEventListener('click', () => {
   currentQ = 0;
   userAnswers = {};
   quizQuestions.forEach(q => userAnswers[q.id] = null);
+  clearDraft();
   showScreen('quiz');
   renderQuestion();
 });
@@ -831,11 +981,14 @@ function renderQuestion() {
   });
 
   const naActive = userAnswers[q.id] === 'NA' ? ' active' : '';
+  const stem = (q.stemByStage && q.stemByStage[selectedStage]) || q.stem;
+  const userNote = q.userNote ? `<div class="q-note">${q.userNote}</div>` : '';
 
   area.innerHTML = `
     <div class="fade-up">
       <div class="q-number">第 ${currentQ + 1} / ${quizQuestions.length} 题</div>
-      <div class="q-stem">${q.stem}</div>
+      <div class="q-stem">${stem}</div>
+      ${userNote}
       <div class="q-options">${optHtml}</div>
       <div class="q-na${naActive}" data-qid="${q.id}" role="button" tabindex="0" aria-pressed="${userAnswers[q.id] === 'NA'}">不确定 / 不适用 / 不想回答</div>
     </div>
@@ -850,6 +1003,7 @@ function renderQuestion() {
   area.querySelectorAll('.q-option').forEach(el => {
     const chooseOption = () => {
       userAnswers[el.dataset.qid] = el.dataset.oid;
+      saveDraft();
       renderQuestion();
     };
     el.addEventListener('click', chooseOption);
@@ -865,6 +1019,7 @@ function renderQuestion() {
   const naOption = area.querySelector('.q-na');
   const chooseNa = () => {
     userAnswers[naOption.dataset.qid] = 'NA';
+    saveDraft();
     renderQuestion();
   };
   naOption.addEventListener('click', chooseNa);
@@ -877,12 +1032,13 @@ function renderQuestion() {
 
   // nav
   document.getElementById('prevBtn').addEventListener('click', () => {
-    if (currentQ > 0) { currentQ--; renderQuestion(); }
+    if (currentQ > 0) { currentQ--; saveDraft(); renderQuestion(); }
   });
 
   document.getElementById('nextBtn').addEventListener('click', () => {
     if (currentQ < quizQuestions.length - 1) {
       currentQ++;
+      saveDraft();
       renderQuestion();
     } else {
       showResults();
@@ -894,11 +1050,10 @@ function renderQuestion() {
 function relationshipStory(result, dimLabels) {
   const config = QUIZ_DATA.resultPresentation.relationshipStory;
   if (!result.relationship) return { ...config.insufficient };
-  const values = RELATIONSHIP_KEYS.map(key => result.relationship[key]);
-  const average = values.reduce((sum, value) => sum + value, 0) / values.length;
+  const average = result.relationshipAverage;
   const lowestKey = [...RELATIONSHIP_KEYS].sort((a, b) => result.relationship[a] - result.relationship[b])[0];
   const strongestKey = [...RELATIONSHIP_KEYS].sort((a, b) => result.relationship[b] - result.relationship[a])[0];
-  const storyKey = result.growth && average >= config.nourishingAverageMin && result.strongRiskCount <= config.nourishingMaxStrongRiskAnswers
+  const storyKey = (result.growth || result.historicalNourishing) && average >= config.nourishingAverageMin && result.strongRiskCount <= config.nourishingMaxStrongRiskAnswers
     ? 'growth'
     : average >= config.supportiveAverageMin ? 'supportive' : average >= config.mixedAverageMin ? 'mixed' : 'consuming';
   const story = config[storyKey];
@@ -936,9 +1091,11 @@ function selectInsights(result) {
 
 function sourceStory(result, reports, srcLabels) {
   const config = QUIZ_DATA.resultPresentation.sourceStory;
-  const presentationReportId = result.srcStatus === 'fallback' ? config.fallback.presentationReportId : result.reportId;
+  const isFallbackPresentation = config.fallback.statuses.includes(result.srcStatus);
+  const presentationReportId = isFallbackPresentation ? config.fallback.presentationReportId : result.reportId;
   const report = reports[presentationReportId] || reports.insufficient_answers;
   const primaryNames = result.primary.map(k => srcLabels[k]);
+  const secondaryNames = result.secondary.map(k => srcLabels[k]);
   const closeNames = result.sources
     ? [...SOURCE_KEYS]
         .sort((a, b) => result.sources[b] - result.sources[a])
@@ -949,7 +1106,7 @@ function sourceStory(result, reports, srcLabels) {
   if (result.srcStatus === 'information_insufficient') {
     return { title: config.information_insufficient.title, summary: interpolate(config.information_insufficient.summaryTemplate, { reportCore: report.core }), report };
   }
-  if (result.srcStatus === 'fallback') return { ...config.fallback, report };
+  if (isFallbackPresentation) return { ...config.fallback, report };
   if (config.combined.statuses.includes(result.srcStatus)) {
     return {
       title: interpolate(config.combined.titleTemplate, { closeNamesPair: closeNames.slice(0, 2).join('与') }),
@@ -957,11 +1114,12 @@ function sourceStory(result, reports, srcLabels) {
       report
     };
   }
-  const boundary = result.sourceMargin < QUIZ_DATA.rules.confidence.medium.primaryMarginMin;
+  const boundary = result.sourceBoundaryNear;
   return {
     title: interpolate(config.primary.titleTemplate, { primaryNames: primaryNames.join('、') }),
     summary: interpolate(config.primary.summaryTemplate, {
       reportCore: report.core,
+      secondaryNote: secondaryNames.length ? interpolate(config.primary.secondaryNoteTemplate, { secondaryNames: secondaryNames.join('、') }) : '',
       boundaryNote: boundary ? config.primary.boundaryNote : '',
       unfinishedNote: result.unfinished ? config.primary.unfinishedNote : ''
     }),
@@ -970,7 +1128,7 @@ function sourceStory(result, reports, srcLabels) {
 }
 
 function mainReportFor(result, relationship, source, reports) {
-  if (relationship.key === 'growth' && result.srcStatus === 'fallback') return reports.mutual_growth;
+  if (result.growth && ['fallback','not_prominent'].includes(result.srcStatus)) return reports.mutual_growth;
   return source.report;
 }
 
@@ -983,15 +1141,93 @@ function mainResultStory(result, relationship, source) {
   const config = QUIZ_DATA.resultPresentation.mainResultStory;
   let story;
   if (result.srcStatus === 'information_insufficient' && !result.relationship) story = config.insufficient;
-  else if (relationship.key === 'growth' && result.srcStatus === 'fallback') story = config.growthFallback;
-  else if (relationship.key === 'growth') story = config.growth;
-  else if (result.srcStatus === 'fallback') story = config.fallback;
+  else if (result.growth && ['fallback','not_prominent'].includes(result.srcStatus)) story = config.growthFallback;
+  else if (result.growth) story = config.growth;
+  else if (['fallback','not_prominent'].includes(result.srcStatus)) story = config.fallback;
   else story = config.default;
   const values = { relationshipTitle: relationship.headline || relationship.title, relationshipSummary: relationship.summary, sourceTitle: source.title };
   return {
     title: story.title || interpolate(story.titleTemplate, values),
     lead: story.lead || interpolate(story.leadTemplate, values)
   };
+}
+
+function selectedOptionFor(result, question) {
+  const answer = result.answers[question.id];
+  return ["A","B","C","D"].includes(answer) ? question.options.find(option => option.id === answer) : null;
+}
+
+function relationshipEvidence(result, storyKey, limit = 3) {
+  const candidates = QUIZ_DATA.questions.flatMap(question => {
+    if (!question.relationshipApplicability.includes(result.stage)) return [];
+    const option = selectedOptionFor(result, question);
+    if (!option) return [];
+    const score = RELATIONSHIP_KEYS.reduce((sum, key) => sum + option.r[key], 0);
+    if (score === 0) return [];
+    return [{ id: question.id, text: option.text, score, weight: questionWeight(question, result.stage) }];
+  });
+  const negative = [...candidates].filter(item => item.score < 0).sort((a,b) => a.score - b.score || b.weight - a.weight);
+  const positive = [...candidates].filter(item => item.score > 0).sort((a,b) => b.score - a.score || b.weight - a.weight);
+  const ordered = ["mixed","consuming"].includes(storyKey)
+    ? [negative[0], positive[0], ...negative.slice(1), ...positive.slice(1)]
+    : [positive[0], negative[0], ...positive.slice(1), ...negative.slice(1)];
+  return ordered.filter(Boolean).filter((item, index, all) => all.findIndex(other => other.id === item.id) === index).slice(0, limit);
+}
+
+function sourceEvidence(result, limit = 3) {
+  if (!result.sources || ["information_insufficient","fallback","not_prominent"].includes(result.srcStatus)) return [];
+  let targetKeys = [...result.primary, ...result.secondary];
+  if (["tie","multiple"].includes(result.srcStatus)) {
+    targetKeys = SOURCE_KEYS.filter(key => result.sourceTop - result.sources[key] <= QUIZ_DATA.rules.source.tieGap);
+  }
+  if (!targetKeys.length) return [];
+  const candidates = QUIZ_DATA.questions.flatMap(question => {
+    if (!question.sourceApplicable) return [];
+    const option = selectedOptionFor(result, question);
+    if (!option) return [];
+    const scores = Object.fromEntries(targetKeys.map(key => [key, option.s[key]]));
+    const score = Object.values(scores).reduce((sum, value) => sum + value, 0);
+    return score > 0 ? [{ id: question.id, text: option.text, score, scores, weight: questionWeight(question, result.stage) }] : [];
+  });
+  const picked = [];
+  for (const key of targetKeys) {
+    const best = [...candidates].filter(item => item.scores[key] > 0 && !picked.some(existing => existing.id === item.id))
+      .sort((a,b) => (b.scores[key] * b.weight) - (a.scores[key] * a.weight) || a.id.localeCompare(b.id))[0];
+    if (best) picked.push({ ...best, label: QUIZ_DATA.dimensions.sources[key].label });
+  }
+  const remaining = [...candidates].filter(item => !picked.some(existing => existing.id === item.id))
+    .sort((a,b) => (b.score * b.weight) - (a.score * a.weight) || a.id.localeCompare(b.id))
+    .map(item => {
+      const key = [...targetKeys].sort((a,b) => item.scores[b] - item.scores[a])[0];
+      return { ...item, label: QUIZ_DATA.dimensions.sources[key].label };
+    });
+  return [...picked, ...remaining].slice(0, limit);
+}
+
+function insightEvidence(rule, result, limit = 2) {
+  const questionIds = new Set(rule.evidenceGroups.flatMap(group => Object.keys(group.questions)));
+  return QUIZ_DATA.questions.flatMap(question => {
+    if (!questionIds.has(question.id)) return [];
+    const option = selectedOptionFor(result, question);
+    const matched = option && rule.evidenceGroups.some(group => (group.questions[question.id] || []).includes(option.id));
+    return matched ? [{ id: question.id, text: option.text }] : [];
+  }).slice(0, limit);
+}
+
+function renderAnswerEvidence(items) {
+  return `<ul class="answer-evidence">${items.map(item => `<li><span class="evidence-id">${item.id}</span>${item.label ? `<span class="evidence-kind">对应：${item.label}</span>` : ''}${item.text}</li>`).join('')}</ul>`;
+}
+
+function reportItems(report, field, stage) {
+  return (report[`${field}ByStage`] || {})[stage] || report[field] || [];
+}
+
+function reportValue(report, field, stage) {
+  return (report[`${field}ByStage`] || {})[stage] || report[field] || '';
+}
+
+function uniqueItems(items) {
+  return items.filter((item, index) => item && items.indexOf(item) === index);
 }
 
 function showResults() {
@@ -1009,9 +1245,15 @@ function showResults() {
   const main = mainResultStory(result, relationship, source);
   const mainReport = mainReportFor(result, relationship, source, reports);
   const insights = selectInsights(result);
-  const insightSignals = insights.flatMap(insight => insight.signals);
-  const insightActions = insights.flatMap(insight => insight.actions);
+  const insightSignals = insights.flatMap(insight => reportItems(insight, 'signals', result.stage));
+  const insightActions = insights.flatMap(insight => reportItems(insight, 'actions', result.stage));
+  const details = QUIZ_DATA.resultPresentation.resultDetails;
+  const relationshipEvidenceItems = relationshipEvidence(result, relationship.key);
+  const sourceEvidenceItems = sourceEvidence(result);
+  const mainSignals = reportItems(mainReport, 'signals', result.stage);
+  const mainActions = reportItems(mainReport, 'actions', result.stage);
   const wrap = document.getElementById('resultsWrap');
+  clearDraft();
 
   let html = `<div class="result-header fade-up">
     <h2>你的关系观察</h2>
@@ -1035,13 +1277,17 @@ function showResults() {
       </div>
     </div>
     <p class="result-boundary">前一部分看你们现实中怎样相处；后一部分看哪些感受更容易影响你对关系的判断和投入。</p>
+    ${(result.relationshipBoundaryNear || result.sourceBoundaryNear) ? `<p class="boundary-note">${details.boundaryNote}</p>` : ''}
   </div>`;
+
+  if (result.stage === 'ended') {
+    html += `<div class="result-card fade-up"><h3>关于已经结束的关系</h3><p>${details.endedNotice}</p></div>`;
+  }
 
   if (result.relationship) {
     const colors = { reciprocity:'#7aaa8a', stability:'#6b9bc0', repair:'#d4a574', selfPreservation:'#a89bb0' };
     const gate = QUIZ_DATA.rules.growthGate;
     const levels = QUIZ_DATA.resultPresentation.relationshipLevels;
-    const details = QUIZ_DATA.resultPresentation.resultDetails;
     const levelFor = (key, value) => value >= gate[`${key}Min`] ? levels.positive : value >= levels.midpoint ? levels.some : levels.attention;
     html += `<div class="result-card fade-up"><h3>关系如何运行</h3><p style="color:var(--text-secondary);font-size:.86rem;margin-bottom:.8rem">${details.relationshipIntro}</p>`;
     for (const k of RELATIONSHIP_KEYS) {
@@ -1053,41 +1299,68 @@ function showResults() {
       </div>`;
     }
     const sustainabilityLevel = result.sustainability >= gate.sustainabilityMin ? levels.positive : result.sustainability >= levels.midpoint ? levels.some : levels.attention;
-    html += `<div class="dim-row" style="margin-top:.5rem;padding-top:.5rem;border-top:1px dashed var(--border)">
-      <span class="dim-label" style="font-weight:600;color:var(--text)">${details.sustainabilityLabel}</span>
-      <div class="dim-bar-wrap"><div class="dim-bar" style="width:${result.sustainability}%;background:var(--primary)"></div></div>
-      <span class="dim-val" style="width:6.8rem">${sustainabilityLevel}</span>
-    </div>
+    html += `<p class="sustainability-summary"><strong>${details.sustainabilityLabel}：</strong>${sustainabilityLevel}。${details.sustainabilityExplanation}</p>
     <div class="evidence-list">
       ${RELATIONSHIP_KEYS.map(k => `<span class="evidence-chip">${dimLabels[k]}：${levelFor(k, result.relationship[k])}</span>`).join('')}
     </div></div>`;
   }
 
+  if (relationshipEvidenceItems.length || sourceEvidenceItems.length) {
+    html += `<div class="result-card fade-up"><h3>结论与答案怎样对应</h3><p style="color:var(--text-secondary);font-size:.84rem;margin-bottom:.8rem">${details.evidenceIntro}</p>
+      ${relationshipEvidenceItems.length ? `<div class="evidence-block"><h4>${details.relationshipEvidenceTitle}</h4>${renderAnswerEvidence(relationshipEvidenceItems)}</div>` : ''}
+      ${sourceEvidenceItems.length ? `<div class="evidence-block"><h4>${details.sourceEvidenceTitle}</h4>${renderAnswerEvidence(sourceEvidenceItems)}</div>` : ''}
+      ${result.practicalContext ? `<p class="context-note">${details.practicalContextNote}</p>` : ''}
+    </div>`;
+  } else if (result.practicalContext) {
+    html += `<div class="result-card fade-up"><h3>现实牵连需要单独看</h3><p class="context-note">${details.practicalContextNote}</p></div>`;
+  }
+
   if (insights.length) {
     html += `<div class="result-card fade-up"><h3>答案里藏着的相处模式</h3>
-      ${insights.map(insight => `<div class="insight-block"><strong>${insight.title}</strong><p>${insight.body}</p></div>`).join('')}
+      ${insights.map(insight => {
+        const proof = insightEvidence(insight, result);
+        return `<div class="insight-block"><strong>${insight.title}</strong><p>${insight.body}</p>${proof.length ? `<p class="insight-proof">组合依据：${proof.map(item => `${item.id}「${item.text}」`).join('；')}</p>` : ''}</div>`;
+      }).join('')}
     </div>`;
   }
 
-  const nextSignals = (insightSignals.length ? insightSignals : mainReport.signals).slice(0, 3);
+  if (result.srcStatus !== 'information_insufficient') {
+    const fallbackExplanation = ['fallback','not_prominent'].includes(result.srcStatus);
+    const explanationHeading = fallbackExplanation ? '为什么这次没有强行归类' : '这为什么会影响你的判断';
+    const energyHeading = fallbackExplanation ? '更适合怎样看' : '它怎样影响你的判断';
+    const attachmentHeading = fallbackExplanation ? '该回到哪些事实' : '你舍不得的可能是什么';
+    html += `<div class="result-card fade-up"><h3>${explanationHeading}</h3>
+      <div class="explanation-grid">
+        <div class="explanation-item"><strong>${energyHeading}</strong><p>${source.report.energy}</p></div>
+        <div class="explanation-item"><strong>${attachmentHeading}</strong><p>${source.report.attachment}</p></div>
+      </div>
+      <p style="margin-top:.8rem"><strong>你已经拥有的部分：</strong>${source.report.strengths}</p>
+    </div>`;
+  }
+
+  const nextSignals = uniqueItems([insightSignals[0], ...mainSignals]).slice(0, 3);
   html += `<div class="result-card fade-up">
     <h3>接下来最值得看</h3>
     <ul class="signal-list">${nextSignals.map(item => `<li>${item}</li>`).join('')}</ul>
     <p style="margin-top:.8rem"><strong>别忽略：</strong>${mainReport.risks}</p>
   </div>`;
 
-  const nextActions = (insightActions.length ? insightActions : mainReport.actions).slice(0, 2);
+  const nextActions = uniqueItems([insightActions[0], ...mainActions]).slice(0, 2);
   html += `<div class="result-card fade-up"><h3>可以马上做的两件事</h3><ul class="action-list">
     ${nextActions.map(item => `<li>${item}</li>`).join('')}
-  </ul><p style="font-size:.82rem;color:var(--text-secondary);margin-top:.6rem">${actionFootnote(result)}</p></div>`;
+  </ul>
+  <p class="action-safety">${details.actionSafetyCondition[result.stage]}</p>
+  <p style="font-size:.82rem;color:var(--text-secondary);margin-top:.6rem">${actionFootnote(result)}</p>
+  <p style="font-size:.8rem;color:var(--text-secondary);margin-top:.35rem">建议观察节奏：${reportValue(mainReport, 'observationPeriod', result.stage)}</p></div>`;
 
   html += `<div class="result-card fade-up" style="text-align:center;background:var(--accent-light)">
     <p style="font-size:1.08rem;font-weight:600;color:var(--primary)">“${mainReport.share}”</p>
+    <div class="share-actions"><button class="btn btn-outline" type="button" onclick="copyShareResult()">复制分享文字</button></div>
+    <p class="comment-prompt">${details.commentPrompt}</p>
+    <p class="comment-prompt">${details.sharePrivacyNote}</p>
   </div>`;
 
-  if (result.stage === 'ended') {
-    html += `<div class="result-card fade-up"><h3>关于已经结束的关系</h3><p>${QUIZ_DATA.resultPresentation.resultDetails.endedNotice}</p></div>`;
-  }
+  window.lastShareText = `${main.title}\n“${mainReport.share}”\n——关系自我觉察测试结果（非心理诊断）`;
 
   html += `<div class="safety-card fade-up"><h3>安全提示</h3><p>${mainReport.safety}</p></div>`;
   html += `<div class="disclaimer-result">
@@ -1096,7 +1369,7 @@ function showResults() {
   </div>`;
 
   html += `<div style="text-align:center;margin-top:2rem;display:flex;gap:.7rem;justify-content:center;flex-wrap:wrap">
-    <button class="btn btn-outline" onclick="exportAnswers()">复制本次答案</button>
+    ${DEBUG_PRESETS ? '<button class="btn btn-outline" onclick="exportAnswers()">复制本次答案</button>' : ''}
     <button class="btn btn-outline" onclick="restart()">返回测试首页</button>
   </div>`;
 
@@ -1119,6 +1392,17 @@ async function exportAnswers() {
     alert('本次答案已复制。刷新后点击“导入上次答案”，粘贴即可。');
   } catch (_) {
     prompt('请复制下面的答案数据：', payload);
+  }
+}
+
+async function copyShareResult() {
+  const text = window.lastShareText || '';
+  if (!text) return;
+  try {
+    await navigator.clipboard.writeText(text);
+    alert('分享文字已复制，不包含你的具体答案。');
+  } catch (_) {
+    prompt('请复制下面的分享文字：', text);
   }
 }
 
@@ -1148,6 +1432,7 @@ function importAnswers() {
 }
 
 function restart() {
+  clearDraft();
   selectedStage = null;
   currentQ = 0;
   userAnswers = {};

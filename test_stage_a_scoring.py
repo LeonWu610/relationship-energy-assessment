@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""阶段 A v1.1：规则单测、叙事先行生活画像和工程边界验证。"""
+"""阶段 A v1.2：规则单测、叙事先行生活画像和工程边界验证。"""
 from __future__ import annotations
-import argparse, json, random, tempfile, unittest
+import argparse, json, random, shutil, subprocess, tempfile, unittest
 from collections import Counter
 from copy import deepcopy
 from pathlib import Path
@@ -19,22 +19,22 @@ def p(pid:str,name:str,narrative:str,stage:str,code:str,required:list[str],allow
 
 # 画像先写生活叙述，再逐题阅读后手工指定全部答案；未使用任何分数最大化生成器。
 LIFE_PROFILES=[
-p("L01","恋爱稳定","双方稳定投入，冲突后会回来讨论，也保留各自生活。","ongoing","ABABADBDBAADACBAABADACACAACC",[],["not_prominent","memory"],["intermittent","validation","loss"],True,["low","medium","high"],False),
-p("L02","现实压力可修复","工作压力令安排变化，但会说明、补约并共同修复。","ongoing","ABABADBDBAADACBAABADACACAACC",[],["not_prominent","memory"],["intermittent","loss"],True,["low","medium","high"],False),
-p("L03","靠过去维持","当下疏远，主要靠过去的主动、默契和承诺解释现在。","ongoing","CCCACACACACACDCCCADCCACCCACA",["memory"],["memory","potential"],["intermittent","validation"],False,["low","medium","high"],False),
-p("L04","分手怀念自己","关系结束，怀念共同经历和当时更有生命力的自己，但能生活。","ended","CCCADADCDADADCCACBCDCCACCADC",["memory"],["memory","not_prominent"],["intermittent","validation"],False,["low","medium","high"],False),
-p("L05","暧昧等准备好","对方说等状态稳定会确认关系，用户持续等待未来兑现。","ongoing","BDDA BCDCDDDDBDDBDADADBDDBDDB".replace(" ",""),["potential"],["potential"],["memory","intermittent"],False,["medium","high"],False),
-p("L06","复合仅口头承诺","提出复合并描绘未来，却没有连续行动或实际修复。","ongoing","BDDBBDDCDDDDBDDBDADADBDDBDBB",["potential"],["potential","intermittent"],["memory"],False,["low","medium","high"],False),
-p("L07","冷热暧昧","长时间冷淡后突然热烈，高光常抵消失约和不确定。","ongoing","BAACCBADADBCBDBBCCCBABBBBDDB",["intermittent"],["intermittent","validation"],["memory"],False,["medium","high"],False),
-p("L08","断联偶发消息","已经断联，但偶尔一条关心消息会重新点燃投入。","ended","BACACBCDCACCBDBBCCCBACBBBDDB",["intermittent"],["intermittent","memory"],["potential"],False,["low","medium","high"],False),
-p("L09","自我价值证明","把对方是否坚定选择自己理解为是否足够好。","ongoing","DCDDBDABDBACBDBBABBBDBBBADAD",["validation"],["validation","loss"],["memory"],False,["low","medium","high"],False),
-p("L10","分手比较新伴侣","分手后关注对方新伴侣，想通过被重新选择证明自己。","ended","DCDDBDABDBACBDBBABBBDBBBADAD",["validation"],["validation","loss"],["memory"],False,["low","medium","high"],False),
-p("L11","害怕孤独","知道关系不合适，却担心生活空掉、没有支持而停留。","ongoing","DCDDDCACDCCBDADBDDDBADADACCC",["loss"],["loss","validation"],["memory","intermittent"],False,["low","medium","high"],False),
-p("L12","复合因怕遇不到","考虑复合主要因为怕以后遇不到合适的人，而非现实改变。","ended","DCDDDCACDCCBDADBDDDBADADACCC",["loss"],["loss","potential"],["intermittent"],False,["low","medium","high"],False),
-p("L13","正常悲伤","分手后会怀念和难过，但能区分怀念与重启，也有外部支持。","ended","CBADAAADAAACDCABCBADDCAAACDC",[],["fallback","loss"],["intermittent","validation"],False,["low","medium","high"],False),
-p("L14","双来源并列","既留恋过去的好，也等待没完成的共同未来。","ended","CDBBCCCACCBCCDCACBDAACBCCABB",[],["tie","primary"],["intermittent","validation"],False,["low","medium","high"],True),
-p("L15","异常低信息","大量题目不适用或不愿作答，不能支持来源或关系结论。","ended","NNNNNNNNNNNNNNNNNNNNABCNNNNN",[],["information_insufficient"],[],False,["insufficient"],False),
-p("L16","真实修复复合对照","复合后承诺已转成稳定行动，旧问题能讨论且双方保有边界。","ongoing","ABABADBDBAADACBAABADACACAACC",[],["not_prominent","memory"],["intermittent","loss"],True,["low","medium","high"],False),
+p("L01","恋爱稳定","双方稳定投入，冲突后会回来讨论，也保留各自生活。","ongoing","ABABADBDBAADACBAABADADACAABC",[],["not_prominent","memory"],["intermittent","validation","loss"],True,["low","medium","high"],False),
+p("L02","现实压力可修复","工作压力令安排变化，但会说明、补约并共同修复。","ongoing","ABABADBDBAADACBAABADADACAABC",[],["not_prominent","memory"],["intermittent","loss"],True,["low","medium","high"],False),
+p("L03","靠过去维持","当下疏远，主要靠过去的主动、默契和承诺解释现在。","ongoing","CCCACACACACACCCCBADCCBCCCACA",["memory"],["memory","potential"],["intermittent","validation"],False,["low","medium","high"],False),
+p("L04","分手怀念自己","关系结束，怀念共同经历和当时更有生命力的自己，但能生活。","ended","CCCADADCDADADCCACBCDCDACCADC",["memory"],["memory","not_prominent"],["intermittent","validation"],False,["low","medium","high"],False),
+p("L05","暧昧等准备好","对方说等状态稳定会确认关系，用户持续等待未来兑现。","ongoing","BDDA BCDCDDDDBCDBDADADBDDBDDB".replace(" ",""),["potential"],["potential"],["memory","intermittent"],False,["low","medium","high"],False),
+p("L06","复合仅口头承诺","提出复合并描绘未来，却没有连续行动或实际修复。","ongoing","BDDBBDDCDDDDBCDBDADADBDDBDBB",["potential"],["potential","intermittent"],["memory"],False,["low","medium","high"],False),
+p("L07","冷热暧昧","长时间冷淡后突然热烈，高光常抵消失约和不确定。","ongoing","BAACCBADADBCBCBBBCCBABBBBDDB",["intermittent"],["intermittent","validation"],["memory"],False,["medium","high"],False),
+p("L08","断联偶发消息","已经断联，但偶尔一条关心消息会重新点燃投入。","ended","BACACBCDCACCBCBBCCCBABBBBDDB",["intermittent"],["intermittent","memory"],["potential"],False,["low","medium","high"],False),
+p("L09","自我价值证明","把对方是否坚定选择自己理解为是否足够好。","ongoing","DCDDBDABDBACBBBBABBBDABBADAD",["validation"],["validation","loss"],["memory"],False,["low","medium","high"],False),
+p("L10","分手比较新伴侣","分手后关注对方新伴侣，想通过被重新选择证明自己。","ended","DCDDBDABDBACBBBBABBBDABBADAD",["validation"],["validation","loss"],["memory"],False,["low","medium","high"],False),
+p("L11","害怕孤独","知道关系不合适，却担心生活空掉、没有支持而停留。","ongoing","DCDDDCACDCCBDADBDDDBAAADACCC",["loss"],["loss","validation"],["memory","intermittent"],False,["low","medium","high"],False),
+p("L12","复合因怕遇不到","考虑复合主要因为怕以后遇不到合适的人，而非现实改变。","ended","DCDDDCACDCCBDADBDDDBAAADACCC",["loss"],["loss","potential"],["intermittent"],False,["low","medium","high"],False),
+p("L13","正常悲伤","分手后会怀念和难过，但能区分怀念与重启，也有外部支持。","ended","CBADAAADAAACDCAACBADDDAAACDC",[],["fallback","loss"],["intermittent","validation"],False,["low","medium","high"],False),
+p("L14","双来源并列","既留恋过去的好，也等待没完成的共同未来。","ended","CDBBCCCACCBCCCCACBDAADBCCABB",[],["tie","primary"],["intermittent","validation"],False,["low","medium","high"],True),
+p("L15","异常低信息","大量题目不适用或不愿作答，不能支持来源或关系结论。","ended","NNNNNNNNNNNNNNNNNNNNANCNNNNN",[],["information_insufficient"],[],False,["insufficient"],False),
+p("L16","真实修复复合对照","复合后承诺已转成稳定行动，旧问题能讨论且双方保有边界。","ongoing","ABABADBDBAADACBAABADADACAABC",[],["not_prominent","memory"],["intermittent","loss"],True,["low","medium","high"],False),
 ]
 
 ENGINEERING_SAMPLES=[{"id":f"E0{i+1}","name":f"全{x}","stage":"ongoing","answers":{q:x for q in QIDS}} for i,x in enumerate("ABCD")]
@@ -88,7 +88,8 @@ class ScoringTests(unittest.TestCase):
     def test_growth_exact_boundaries(self):
         d=deepcopy(DATA); base=score_answers(d,LIFE_PROFILES[0]["answers"],"ongoing"); scores=base["relationship"]["scores"]
         for key in ("reciprocity","stability","repair","selfPreservation"): d["rules"]["growthGate"][f"{key}Min"]=scores[key]
-        d["rules"]["growthGate"]["sustainabilityMin"]=base["relationship"]["sustainability"]["score"]; d["rules"]["growthGate"]["maxStrongRiskAnswers"]=base["strongRiskAnswerCount"]; self.assertTrue(score_answers(d,LIFE_PROFILES[0]["answers"],"ongoing")["mutualGrowth"]["met"])
+        d["rules"]["growthGate"]["relationshipAverageMin"]=base["relationship"]["average"]; d["resultPresentation"]["relationshipStory"]["nourishingAverageMin"]=base["relationship"]["average"]
+        d["rules"]["growthGate"]["sustainabilityMin"]=base["relationship"]["sustainability"]["score"]; d["rules"]["growthGate"]["maxStrongRiskAnswers"]=base["strongRiskAnswerCount"]; d["resultPresentation"]["relationshipStory"]["nourishingMaxStrongRiskAnswers"]=base["strongRiskAnswerCount"]; self.assertTrue(score_answers(d,LIFE_PROFILES[0]["answers"],"ongoing")["mutualGrowth"]["met"])
         d["rules"]["growthGate"]["reciprocityMin"]=scores["reciprocity"]+.01; self.assertFalse(score_answers(d,LIFE_PROFILES[0]["answers"],"ongoing")["mutualGrowth"]["met"])
     def test_confidence_levels(self):
         full=score_answers(DATA,LIFE_PROFILES[2]["answers"],"ongoing"); low=score_answers(DATA,{q:(LIFE_PROFILES[2]["answers"][q] if i<21 else "NA") for i,q in enumerate(QIDS)},"ongoing"); insufficient=score_answers(DATA,LIFE_PROFILES[14]["answers"],"ended"); self.assertIn(full["confidence"]["level"],{"low","medium","high"}); self.assertIn(low["confidence"]["level"],{"low","medium"}); self.assertEqual(insufficient["confidence"]["level"],"insufficient")
@@ -159,6 +160,110 @@ class ScoringTests(unittest.TestCase):
         result=score_answers(DATA,LIFE_PROFILES[0]["answers"],"ongoing")
         self.assertTrue(result["mutualGrowth"]["met"])
         self.assertEqual(result["sourceClassification"]["status"],"fallback")
+
+    def test_source_only_answers_cannot_change_relationship_result(self):
+        applicable=[q for q in DATA["questions"] if q["scene"] in {"all","ongoing"}]
+        base_answers={q["id"]:"A" for q in applicable}
+        changed=dict(base_answers)
+        pure_source=[q for q in applicable if not q["relationshipApplicability"] and q["sourceApplicable"]]
+        self.assertTrue(pure_source)
+        for q in pure_source: changed[q["id"]]="D"
+        base=score_answers(DATA,base_answers,"ongoing"); other=score_answers(DATA,changed,"ongoing")
+        self.assertEqual(base["relationship"],other["relationship"])
+        self.assertEqual(base["strongRiskAnswerCount"],other["strongRiskAnswerCount"])
+        self.assertNotEqual(base["sources"],other["sources"])
+
+    def test_relationship_only_answers_cannot_change_source_result(self):
+        answers={q["id"]:"A" for q in DATA["questions"] if q["scene"] in {"all","ongoing"}}
+        base=score_answers(DATA,answers,"ongoing")
+        answers["Q17"]="B"
+        changed=score_answers(DATA,answers,"ongoing")
+        self.assertEqual(base["sources"],changed["sources"])
+        self.assertEqual(base["sourceClassification"],changed["sourceClassification"])
+        self.assertNotEqual(base["relationship"]["scores"],changed["relationship"]["scores"])
+
+    def test_ended_nourishing_history_is_reachable_without_current_growth(self):
+        answers={}
+        for q in DATA["questions"]:
+            if q["scene"] not in {"all","ended"}: continue
+            answers[q["id"]]=max(q["options"],key=lambda option:sum(option["r"].values()))["id"] if "ended" in q["relationshipApplicability"] else "NA"
+        result=score_answers(DATA,answers,"ended")
+        self.assertTrue(result["relationship"]["historicallyNourishing"])
+        self.assertTrue(result["relationship"]["nourishingEvidence"])
+        self.assertFalse(result["mutualGrowth"]["met"])
+        self.assertFalse(result["mutualGrowth"]["applicable"])
+
+    def test_nourishing_label_requires_high_relationship_coverage(self):
+        answers=dict(LIFE_PROFILES[0]["answers"])
+        relationship_only=[q["id"] for q in DATA["questions"] if "ongoing" in q["relationshipApplicability"] and not q["sourceApplicable"]]
+        for qid in relationship_only[:4]: answers[qid]="NA"
+        result=score_answers(DATA,answers,"ongoing")
+        self.assertEqual(result["relationship"]["status"],"final")
+        self.assertLess(result["coverage"]["relationshipApplicableRatio"],DATA["rules"]["growthGate"]["relationshipCoverageMin"])
+        self.assertFalse(result["mutualGrowth"]["met"])
+        self.assertFalse(result["relationship"]["nourishingEvidence"])
+
+    def test_practical_constraint_is_not_scored_as_loss(self):
+        answers={q["id"]:"A" for q in DATA["questions"] if q["scene"] in {"all","ended"}}
+        answers["Q14"]="C"; without=score_answers(DATA,answers,"ended")
+        answers["Q14"]="D"; with_context=score_answers(DATA,answers,"ended")
+        self.assertEqual(without["sources"],with_context["sources"])
+        self.assertFalse(without["sourceClassification"]["practicalContext"])
+        self.assertTrue(with_context["sourceClassification"]["practicalContext"])
+
+    def test_source_coverage_does_not_depend_on_unrelated_total_coverage(self):
+        d=deepcopy(DATA); d["rules"]["coverage"]["totalAnsweredRatioMin"]=1.0
+        answers={q["id"]:("A" if q["sourceApplicable"] else "NA") for q in d["questions"] if q["scene"] in {"all","ongoing"}}
+        result=score_answers(d,answers,"ongoing")
+        self.assertLess(result["coverage"]["totalAnsweredRatio"],1.0)
+        self.assertIsNotNone(result["sources"])
+
+    def test_zero_source_signals_mean_not_prominent_not_insufficient(self):
+        answers={}
+        for q in DATA["questions"]:
+            if q["scene"] not in {"all","ongoing"}: continue
+            zero=next((option["id"] for option in q["options"] if sum(option["s"].values())==0),None)
+            answers[q["id"]]=zero or "NA"
+        result=score_answers(DATA,answers,"ongoing")
+        self.assertEqual(result["coverage"]["sourceAnsweredRatio"],0.9)
+        self.assertEqual(result["sourceClassification"]["status"],"not_prominent")
+        self.assertEqual(result["sourceClassification"]["reportId"],"sources_not_prominent")
+        self.assertEqual(max(result["sources"].values()),0)
+
+    def test_stable_profile_does_not_trigger_life_contraction(self):
+        preset=next(item for item in DATA["testPresets"]["items"] if item["id"]=="preset-01")
+        result=score_answers(DATA,preset["answers"],preset["stage"])
+        rule=next(rule for rule in DATA["resultPresentation"]["insightRules"] if rule["id"]=="partial_life_contraction")
+        matched=all(sum(result["answers"].get(qid) in options for qid,options in group["questions"].items())>=group["minimum"] for group in rule["evidenceGroups"])
+        self.assertFalse(matched)
+
+    def test_ended_actions_never_require_contact(self):
+        reachable={value["resultId"] for value in DATA["dimensions"]["sources"].values()}|{"mixed","sources_not_prominent","insufficient_answers"}
+        ended_insights=[rule for rule in DATA["resultPresentation"]["insightRules"] if "ended" in rule["stages"]]
+        forbidden=("告诉对方","重新联系对方","观察对方","各说一件")
+        for report_id in reachable:
+            report=DATA["reports"][report_id]; actions=report.get("actionsByStage",{}).get("ended",report["actions"])
+            self.assertFalse(any(word in action for action in actions for word in forbidden),report_id)
+        for rule in ended_insights:
+            actions=rule.get("actionsByStage",{}).get("ended",rule["actions"])
+            self.assertFalse(any(word in action for action in actions for word in forbidden),rule["id"])
+
+    def test_page_asks_for_facts_and_exposes_evidence_chain(self):
+        page=Path(__file__).with_name("quiz.html").read_text(encoding="utf-8")
+        self.assertIn("只按真实发生过的情况作答",page)
+        self.assertNotIn("选择你认为更可能出现的一项",page)
+        for marker in ("relationshipEvidence","sourceEvidence","insightEvidence","actionSafetyCondition","copyShareResult","DRAFT_KEY","DEBUG_PRESETS"):
+            self.assertIn(marker,page)
+
+    @unittest.skipUnless(shutil.which("node"),"需要 Node.js 校验浏览器计分器")
+    def test_browser_scoring_matches_python_for_all_presets(self):
+        root=Path(__file__).parent
+        script=r'''const fs=require("fs"),vm=require("vm");const html=fs.readFileSync("quiz.html","utf8");const all=html.match(/<script>([\s\S]*?)<\/script>/)[1];const ctx=vm.createContext({console});vm.runInContext(all.slice(0,all.indexOf("// UI LOGIC")),ctx);ctx.INPUT=JSON.parse(fs.readFileSync("阶段A_题库与报告_v1.0.json","utf8"));vm.runInContext("loadQuizData(INPUT)",ctx);const out={};for(const p of ctx.INPUT.testPresets.items){ctx.ANS=p.answers;ctx.STAGE=p.stage;const r=vm.runInContext("scoreAnswers(ANS,STAGE)",ctx);out[p.id]={relationship:r.relationship,average:r.relationshipAverage,sustainability:r.sustainability,sources:r.sources,growth:r.growth,historical:r.historicalNourishing,status:r.srcStatus,primary:r.primary,secondary:r.secondary,reportId:r.reportId,unfinished:r.unfinished,practical:r.practicalContext,confidence:r.confidence,total:r.totalCov,sourceCoverage:r.srcCov,sceneCoverage:r.sceneCov};}process.stdout.write(JSON.stringify(out));'''
+        browser=json.loads(subprocess.run([shutil.which("node"),"-e",script],cwd=root,check=True,text=True,capture_output=True).stdout)
+        for preset in DATA["testPresets"]["items"]:
+            result=score_answers(DATA,preset["answers"],preset["stage"])
+            expected={"relationship":result["relationship"]["scores"],"average":result["relationship"]["average"],"sustainability":result["relationship"]["sustainability"]["score"],"sources":result["sources"],"growth":result["mutualGrowth"]["met"],"historical":result["relationship"]["historicallyNourishing"],"status":result["sourceClassification"]["status"],"primary":result["sourceClassification"]["primary"],"secondary":result["sourceClassification"]["secondary"],"reportId":result["sourceClassification"]["reportId"],"unfinished":result["sourceClassification"]["unfinished"],"practical":result["sourceClassification"]["practicalContext"],"confidence":result["confidence"]["level"],"total":result["coverage"]["totalAnsweredRatio"],"sourceCoverage":result["coverage"]["sourceAnsweredRatio"],"sceneCoverage":result["coverage"]["relationshipApplicableRatio"]}
+            self.assertEqual(browser[preset["id"]],expected,preset["id"])
 
     def test_result_content_model_and_user_language(self):
         presentation=DATA["resultPresentation"]

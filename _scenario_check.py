@@ -26,7 +26,7 @@ def relationship_story(result: Mapping[str, Any]) -> dict[str, Any]:
     lowest = min(RELATIONSHIP_KEYS, key=lambda key: scores[key])
     strongest = max(RELATIONSHIP_KEYS, key=lambda key: scores[key])
     if (
-        result["mutualGrowth"]["met"]
+        (result["mutualGrowth"]["met"] or result["relationship"]["historicallyNourishing"])
         and average >= config["nourishingAverageMin"]
         and result["strongRiskAnswerCount"] <= config["nourishingMaxStrongRiskAnswers"]
     ):
@@ -62,7 +62,8 @@ def source_story(result: Mapping[str, Any]) -> dict[str, Any]:
     config = DATA["resultPresentation"]["sourceStory"]
     classification = result["sourceClassification"]
     status = classification["status"]
-    report_id = config["fallback"]["presentationReportId"] if status == "fallback" else classification["reportId"]
+    fallback_presentation = status in config["fallback"]["statuses"]
+    report_id = config["fallback"]["presentationReportId"] if fallback_presentation else classification["reportId"]
     report = DATA["reports"].get(report_id, DATA["reports"]["insufficient_answers"])
     if status == "information_insufficient":
         return {
@@ -70,7 +71,7 @@ def source_story(result: Mapping[str, Any]) -> dict[str, Any]:
             "summary": interpolate(config[status]["summaryTemplate"], {"reportCore": report["core"]}),
             "report": report,
         }
-    if status == "fallback":
+    if fallback_presentation:
         return {"title": config[status]["title"], "summary": config[status]["summary"], "report": report}
 
     source_labels = {key: DATA["dimensions"]["sources"][key]["label"] for key in SOURCE_KEYS}
@@ -86,13 +87,15 @@ def source_story(result: Mapping[str, Any]) -> dict[str, Any]:
         }
 
     names = "、".join(source_labels[key] for key in classification["primary"])
-    boundary = result["confidence"]["factors"]["primaryMargin"] < DATA["rules"]["confidence"]["medium"]["primaryMarginMin"]
+    secondary_names = "、".join(source_labels[key] for key in classification["secondary"])
+    boundary = result["boundaries"]["sourceNear"]
     return {
         "title": interpolate(config["primary"]["titleTemplate"], {"primaryNames": names}),
         "summary": interpolate(
             config["primary"]["summaryTemplate"],
             {
                 "reportCore": report["core"],
+                "secondaryNote": interpolate(config["primary"]["secondaryNoteTemplate"], {"secondaryNames": secondary_names}) if secondary_names else "",
                 "boundaryNote": config["primary"]["boundaryNote"] if boundary else "",
                 "unfinishedNote": config["primary"]["unfinishedNote"] if classification["unfinished"] else "",
             },
@@ -102,7 +105,7 @@ def source_story(result: Mapping[str, Any]) -> dict[str, Any]:
 
 
 def main_report_for(result: Mapping[str, Any], relationship: Mapping[str, Any], source: Mapping[str, Any]) -> Mapping[str, Any]:
-    if relationship["key"] == "growth" and result["sourceClassification"]["status"] == "fallback":
+    if result["mutualGrowth"]["met"] and result["sourceClassification"]["status"] in {"fallback", "not_prominent"}:
         return DATA["reports"]["mutual_growth"]
     return source["report"]
 
@@ -117,11 +120,11 @@ def main_result_story(result: Mapping[str, Any], relationship: Mapping[str, Any]
     status = result["sourceClassification"]["status"]
     if status == "information_insufficient" and not result["relationship"]["scores"]:
         story = config["insufficient"]
-    elif relationship["key"] == "growth" and status == "fallback":
+    elif result["mutualGrowth"]["met"] and status in {"fallback", "not_prominent"}:
         story = config["growthFallback"]
-    elif relationship["key"] == "growth":
+    elif result["mutualGrowth"]["met"]:
         story = config["growth"]
-    elif status == "fallback":
+    elif status in {"fallback", "not_prominent"}:
         story = config["fallback"]
     else:
         story = config["default"]
@@ -151,6 +154,10 @@ def select_insights(result: Mapping[str, Any]) -> list[dict[str, Any]]:
     return sorted(matches, key=lambda rule: -rule["priority"])[:2]
 
 
+def stage_items(item: Mapping[str, Any], field: str, stage: str) -> list[str]:
+    return item.get(f"{field}ByStage", {}).get(stage, item.get(field, []))
+
+
 def run_checks() -> list[str]:
     issues: list[str] = []
     forbidden = ("一处", "没有某一种感受", "保留自己", "符合你的需要", "闹矛盾", "局部收缩", "延后表达", "表面恢复平静", "现实依据", "维持原有生活")
@@ -161,7 +168,8 @@ def run_checks() -> list[str]:
         source = source_story(result)
         main = main_result_story(result, relationship, source)
         report = main_report_for(result, relationship, source)
-        text = " ".join((main["title"], main["lead"], relationship["title"], relationship["detail"], source["title"], source["summary"], report["risks"], *report["signals"], *report["actions"], report["share"], action_footnote(result)))
+        actions = stage_items(report, "actions", result["stage"])
+        text = " ".join((main["title"], main["lead"], relationship["title"], relationship["detail"], source["title"], source["summary"], report["risks"], *stage_items(report, "signals", result["stage"]), *actions, report["share"], action_footnote(result)))
         combos.append((relationship["key"], result["sourceClassification"]["status"], result["stage"]))
         for phrase in forbidden:
             if phrase in text:
@@ -170,6 +178,8 @@ def run_checks() -> list[str]:
             issues.append(f"{profile['id']} 主结果为空")
         if result["stage"] == "ended" and result["mutualGrowth"]["met"]:
             issues.append(f"{profile['id']} ended 不应命中双向生长")
+        if result["stage"] == "ended" and any(word in action for action in actions for word in ("告诉对方", "重新联系对方", "观察对方", "各说一件")):
+            issues.append(f"{profile['id']} ended 收到联系型行动：{actions}")
 
     real = next(profile for profile in DATA["testPresets"]["items"] if profile["id"] == "preset-08")
     result = score_answers(DATA, real["answers"], real["stage"])
@@ -183,6 +193,23 @@ def run_checks() -> list[str]:
         issues.append("真实结果未识别‘问题进入对话前的卡点’")
     if "partial_life_contraction" not in insight_ids:
         issues.append("真实结果未识别‘部分安排开始为关系让路’")
+
+    stable = next(profile for profile in DATA["testPresets"]["items"] if profile["id"] == "preset-01")
+    stable_result = score_answers(DATA, stable["answers"], stable["stage"])
+    if "partial_life_contraction" in [rule["id"] for rule in select_insights(stable_result)]:
+        issues.append("稳定画像不应误触发‘部分安排开始为关系让路’")
+
+    ended_answers: dict[str, str] = {}
+    for question in DATA["questions"]:
+        if question["scene"] not in {"all", "ended"}:
+            continue
+        if "ended" in question["relationshipApplicability"]:
+            ended_answers[question["id"]] = max(question["options"], key=lambda option: sum(option["r"].values()))["id"]
+        else:
+            ended_answers[question["id"]] = "NA"
+    ended_result = score_answers(DATA, ended_answers, "ended")
+    if not ended_result["relationship"]["historicallyNourishing"] or relationship_story(ended_result)["key"] != "growth":
+        issues.append("ended 的充分滋养证据仍无法进入过去偏滋养结果")
 
     print(f"已检查 {len(LIFE_PROFILES)} 组生活画像，共 {len(Counter(combos))} 种展示组合。")
     print("真实结果：", relationship["headline"], "；洞察：", "、".join(insight_ids))

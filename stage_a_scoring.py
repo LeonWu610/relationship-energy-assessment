@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""关系能量测试阶段 A v1.1 透明计分器（仅 Python 标准库）。"""
+"""关系能量测试阶段 A v1.2 透明计分器（仅 Python 标准库）。"""
 from __future__ import annotations
 import argparse
 import json
@@ -66,13 +66,21 @@ def validate_data(data: Mapping[str, Any]) -> list[str]:
             if sum(ss.values()) > 0: actual_signal.append(oid)
         if coverage.get("positivePositions") != actual_pos or coverage.get("negativePositions") != actual_neg or coverage.get("sourceSignalPositions") != actual_signal: errors.append(f"{qid} directionCoverage 与分值不一致")
         applicability=question.get("relationshipApplicability", [])
-        if not isinstance(applicability, list) or not applicability or not set(applicability)<=set(VALID_STAGES): errors.append(f"{qid} relationshipApplicability 非法")
-        expected_applicability = list(VALID_STAGES) if question.get("scene") == "all" else [question.get("scene")]
-        if applicability != expected_applicability: errors.append(f"{qid} relationshipApplicability 与 scene 不一致")
+        if not isinstance(applicability, list) or not set(applicability)<=set(VALID_STAGES) or len(applicability)!=len(set(applicability)): errors.append(f"{qid} relationshipApplicability 非法")
+        scene=question.get("scene")
+        shown_stages=set(VALID_STAGES) if scene=="all" else {scene}
+        stem_by_stage=question.get("stemByStage",{})
+        if stem_by_stage and (not isinstance(stem_by_stage,dict) or not set(stem_by_stage)<=shown_stages or any(not isinstance(value,str) or not value.strip() for value in stem_by_stage.values())): errors.append(f"{qid} stemByStage 非法")
+        recent_stages=question.get("recentStages",list(shown_stages) if question.get("recent") else [])
+        if not isinstance(recent_stages,list) or not set(recent_stages)<=shown_stages or (recent_stages and not question.get("recent")): errors.append(f"{qid} recentStages 非法")
+        if not set(applicability)<=shown_stages: errors.append(f"{qid} relationshipApplicability 超出展示场景")
+        if type(question.get("sourceApplicable")) is not bool: errors.append(f"{qid} sourceApplicable 必须是布尔值")
+        if not applicability and any(any(option.get("r", {}).values()) for option in options): errors.append(f"{qid} 不进入关系层但仍含关系分")
+        if question.get("sourceApplicable") is False and any(any(option.get("s", {}).values()) for option in options): errors.append(f"{qid} 不进入来源层但仍含来源分")
     if positive_positions != set("ABCD"): errors.append("正向内容位置未覆盖 A/B/C/D")
     if negative_positions != set("ABCD"): errors.append("负向内容位置未覆盖 A/B/C/D")
     rules=data.get("rules", {})
-    for path in (("growthGate","reciprocityMin"),("growthGate","applicableStages"),("growthGate","endedNotApplicableReason"),("coverage","totalAnsweredRatioMin"),("source","unfinishedEvidenceWeightMin"),("confidence","high"),("confidence","medium")):
+    for path in (("growthGate","reciprocityMin"),("growthGate","relationshipAverageMin"),("growthGate","relationshipCoverageMin"),("growthGate","applicableStages"),("growthGate","endedNotApplicableReason"),("coverage","totalAnsweredRatioMin"),("coverage","relationshipMinApplicableQuestionsByStage"),("source","unfinishedEvidenceWeightMin"),("source","practicalEvidenceWeightMin"),("confidence","high"),("confidence","medium")):
         if path[0] not in rules or path[1] not in rules.get(path[0], {}): errors.append(f"规则缺少 {path[0]}.{path[1]}")
     growth_rule=rules.get("growthGate", {})
     if growth_rule.get("applicableStages") != ["ongoing"]: errors.append("双向生长只能适用于 ongoing")
@@ -85,6 +93,8 @@ def validate_data(data: Mapping[str, Any]) -> list[str]:
     relationship_story=presentation.get("relationshipStory",{})
     for key in ("nourishingAverageMin","nourishingMaxStrongRiskAnswers","supportiveAverageMin","mixedAverageMin"):
         if key not in relationship_story: errors.append(f"结果规则缺少 relationshipStory.{key}")
+    if growth_rule.get("relationshipAverageMin") != relationship_story.get("nourishingAverageMin"): errors.append("双向生长与明显滋养的平均分门槛不一致")
+    if growth_rule.get("maxStrongRiskAnswers") != relationship_story.get("nourishingMaxStrongRiskAnswers"): errors.append("双向生长与明显滋养的强风险门槛不一致")
     question_ids={q.get("id") for q in questions}
     insight_ids:set[str]=set()
     for rule in presentation.get("insightRules",[]):
@@ -135,7 +145,7 @@ def score_answers(data: Mapping[str, Any], answers: Mapping[str, Any], stage: st
         normalized[qid]=value
     rel_raw={k:0.0 for k in RELATIONSHIP_KEYS}; rel_min={k:0.0 for k in RELATIONSHIP_KEYS}; rel_max={k:0.0 for k in RELATIONSHIP_KEYS}
     src_raw={k:0.0 for k in SOURCE_KEYS}; src_max={k:0.0 for k in SOURCE_KEYS}
-    answered=source_answered=relationship_answered=strong=0; unfinished_weight=0.0
+    answered=source_answered=relationship_answered=strong=0; unfinished_weight=practical_weight=0.0
     relationship_applicable=sum(stage in q["relationshipApplicability"] for q in applicable_questions)
     source_applicable=sum(bool(q["sourceApplicable"]) for q in applicable_questions)
     output_answers: dict[str,str]={}
@@ -143,11 +153,13 @@ def score_answers(data: Mapping[str, Any], answers: Mapping[str, Any], stage: st
         qid=q["id"]; answer=normalized.get(qid,"NA"); output_answers[qid]=answer
         if answer=="NA": continue
         answered+=1; source_answered+=int(q["sourceApplicable"]); option=next(o for o in q["options"] if o["id"]==answer)
-        weight=float(rules["recentQuestionWeight"] if q["recent"] else 1.0)
+        recent_stages=q.get("recentStages", VALID_STAGES)
+        weight=float(rules["recentQuestionWeight"] if q["recent"] and stage in recent_stages else 1.0)
         if q["sourceApplicable"]:
             for key in SOURCE_KEYS:
                 src_raw[key]+=option["s"][key]*weight; src_max[key]+=max(o["s"][key] for o in q["options"])*weight
             if "unfinished" in option.get("tags",[]): unfinished_weight+=weight
+            if "practical_constraint" in option.get("tags",[]): practical_weight+=weight
         if stage in q["relationshipApplicability"]:
             relationship_answered+=1; strong+=int(any(option["r"][k]<=-2 for k in RELATIONSHIP_KEYS))
             for key in RELATIONSHIP_KEYS:
@@ -157,39 +169,67 @@ def score_answers(data: Mapping[str, Any], answers: Mapping[str, Any], stage: st
     source_cov=source_answered/source_applicable if source_applicable else 0
     scene_cov=relationship_answered/relationship_applicable if relationship_applicable else 0
     coverage=rules["coverage"]
-    source_computable=total_cov>=coverage["totalAnsweredRatioMin"] and source_cov>=coverage["sourceAnsweredRatioMin"]
-    relationship_computable=relationship_answered>=coverage["relationshipMinApplicableQuestions"] and scene_cov>=coverage["relationshipApplicableRatioMin"]
+    source_computable=source_cov>=coverage["sourceAnsweredRatioMin"]
+    relationship_min=coverage.get("relationshipMinApplicableQuestionsByStage",{}).get(stage,coverage["relationshipMinApplicableQuestions"])
+    relationship_computable=relationship_answered>=relationship_min and scene_cov>=coverage["relationshipApplicableRatioMin"]
     relationship={k:_normalize(rel_raw[k],rel_min[k],rel_max[k]) for k in RELATIONSHIP_KEYS} if relationship_computable else None
+    relationship_average=_round(sum(relationship.values())/len(RELATIONSHIP_KEYS)) if relationship else None
     sustainability=_round(sum(relationship[k] for k in SUSTAINABILITY_KEYS)/3) if relationship else None
     sources={k:_round(0 if src_max[k]==0 else 100*src_raw[k]/src_max[k]) for k in SOURCE_KEYS} if source_computable else None
     growth=False
+    historically_nourishing=False
     growth_reason = None
     g=rules["growthGate"]
+    relationship_story=data["resultPresentation"]["relationshipStory"]
+    nourishing_evidence=bool(
+        relationship
+        and scene_cov>=g["relationshipCoverageMin"]
+        and relationship_average>=g["relationshipAverageMin"]
+        and relationship["reciprocity"]>=g["reciprocityMin"]
+        and relationship["stability"]>=g["stabilityMin"]
+        and relationship["repair"]>=g["repairMin"]
+        and relationship["selfPreservation"]>=g["selfPreservationMin"]
+        and sustainability>=g["sustainabilityMin"]
+        and strong<=g["maxStrongRiskAnswers"]
+    )
     if stage not in g["applicableStages"]:
         growth_reason=g["endedNotApplicableReason"]
+        historically_nourishing=nourishing_evidence
     elif relationship:
-        growth=relationship["reciprocity"]>=g["reciprocityMin"] and relationship["stability"]>=g["stabilityMin"] and relationship["repair"]>=g["repairMin"] and relationship["selfPreservation"]>=g["selfPreservationMin"] and sustainability>=g["sustainabilityMin"] and strong<=g["maxStrongRiskAnswers"]
-    source_rule=rules["source"]; primary:list[str]=[]; secondary:list[str]=[]; margin=0.0; source_status="information_insufficient"; report_id="insufficient_answers"
+        growth=nourishing_evidence
+    source_rule=rules["source"]; primary:list[str]=[]; secondary:list[str]=[]; ranked:list[str]=[]; margin=top=0.0; source_status="information_insufficient"; report_id="insufficient_answers"
     if sources:
         order=source_rule["fixedOrder"]; ranked=sorted(SOURCE_KEYS,key=lambda k:(-sources[k],order.index(k))); top=sources[ranked[0]]; margin=top-sources[ranked[1]]
         near=[k for k in ranked if top-sources[k]<=source_rule["tieGap"]]
         if top<source_rule["prominentMin"]:
-            if top==0: source_status="information_insufficient"; report_id="insufficient_answers"
+            if top==0: source_status="not_prominent"; report_id="sources_not_prominent"
             else: source_status="fallback"; primary=[ranked[0]]; report_id=data["dimensions"]["sources"][primary[0]]["resultId"]
         elif len(near)>=3: source_status="multiple"; primary=near[:source_rule["maxPrimarySources"]]; report_id="mixed"
         elif len(near)==2: source_status="tie"; primary=near; report_id="mixed"
         else:
             source_status="primary"; primary=[ranked[0]]; report_id=data["dimensions"]["sources"][primary[0]]["resultId"]
             secondary=[k for k in ranked[1:] if sources[k]>=source_rule["prominentMin"] and top-sources[k]<=source_rule["secondaryGap"]][:1]
-    thresholds=[]
-    if sources: thresholds += [abs(max(sources.values())-source_rule["prominentMin"]),abs(margin-source_rule["tieGap"]),abs(margin-source_rule["secondaryGap"])]
+    source_decision_distances=[]
+    if sources:
+        source_decision_distances.append(abs(top-source_rule["prominentMin"]))
+        if source_status=="primary": source_decision_distances += [abs(margin-source_rule["tieGap"]),abs(margin-source_rule["secondaryGap"])]
+        elif source_status=="tie":
+            source_decision_distances.append(abs(margin-source_rule["tieGap"]))
+            if len(ranked)>=3: source_decision_distances.append(abs((top-sources[ranked[2]])-source_rule["tieGap"]))
+        elif source_status=="multiple" and len(ranked)>=3:
+            source_decision_distances.append(abs((top-sources[ranked[2]])-source_rule["tieGap"]))
+    thresholds=list(source_decision_distances)
     if relationship:
         gate=rules["growthGate"]
         thresholds += [abs(relationship[key]-gate[f"{key}Min"]) for key in RELATIONSHIP_KEYS]
         thresholds.append(abs(sustainability-gate["sustainabilityMin"]))
+        thresholds += [abs(relationship_average-relationship_story[key]) for key in ("mixedAverageMin","supportiveAverageMin","nourishingAverageMin")]
     threshold_distance=min(thresholds) if thresholds else 0.0
-    confidence=_confidence(rules,total_cov,source_cov,scene_cov,margin,threshold_distance,source_computable)
-    return {"ruleVersion":rules["version"],"stage":stage,"coverage":{"answeredCount":answered,"totalQuestionCount":applicable_count,"totalAnsweredRatio":_round(total_cov),"sourceApplicableCount":source_applicable,"sourceAnsweredCount":source_answered,"sourceAnsweredRatio":_round(source_cov),"relationshipApplicableCount":relationship_applicable,"relationshipAnsweredCount":relationship_answered,"relationshipApplicableRatio":_round(scene_cov)},"relationship":{"status":"final" if relationship_computable else "provisional_unavailable","scores":relationship,"reciprocity":relationship["reciprocity"] if relationship else None,"sustainability":{"score":sustainability,"subscales":{k:relationship[k] for k in SUSTAINABILITY_KEYS} if relationship else None}},"strongRiskAnswerCount":strong,"mutualGrowth":{"met":growth,"applicable":stage in g["applicableStages"],"reportId":"mutual_growth" if growth else None,"notApplicableReason":growth_reason},"sources":sources,"sourceClassification":{"status":source_status,"primary":primary,"secondary":secondary,"reportId":report_id,"unfinished":unfinished_weight>=source_rule["unfinishedEvidenceWeightMin"] if source_computable else False,"unfinishedEvidenceWeight":_round(unfinished_weight),"unfinishedThreshold":source_rule["unfinishedEvidenceWeightMin"],"fixedOrderNotice":source_rule["fixedOrderNotice"]},"confidence":confidence,"answers":output_answers,"disclaimer":data["product"]["nature"],"calibrationNotice":data["product"]["scoringNotice"]}
+    confidence_margin=margin if source_status=="primary" else 100.0
+    confidence=_confidence(rules,total_cov,source_cov,scene_cov,confidence_margin,threshold_distance,source_computable or relationship_computable)
+    relationship_boundary_distance=min((abs(relationship_average-x) for x in (data["resultPresentation"]["relationshipStory"]["mixedAverageMin"],data["resultPresentation"]["relationshipStory"]["supportiveAverageMin"],data["resultPresentation"]["relationshipStory"]["nourishingAverageMin"])),default=100.0) if relationship else None
+    source_boundary_distance=min(source_decision_distances) if source_decision_distances else None
+    return {"ruleVersion":rules["version"],"stage":stage,"coverage":{"answeredCount":answered,"totalQuestionCount":applicable_count,"totalAnsweredRatio":_round(total_cov),"sourceApplicableCount":source_applicable,"sourceAnsweredCount":source_answered,"sourceAnsweredRatio":_round(source_cov),"relationshipApplicableCount":relationship_applicable,"relationshipAnsweredCount":relationship_answered,"relationshipApplicableRatio":_round(scene_cov),"relationshipMinRequired":relationship_min},"relationship":{"status":"final" if relationship_computable else "provisional_unavailable","scores":relationship,"average":relationship_average,"reciprocity":relationship["reciprocity"] if relationship else None,"nourishingEvidence":nourishing_evidence,"historicallyNourishing":historically_nourishing,"sustainability":{"score":sustainability,"subscales":{k:relationship[k] for k in SUSTAINABILITY_KEYS} if relationship else None}},"strongRiskAnswerCount":strong,"mutualGrowth":{"met":growth,"applicable":stage in g["applicableStages"],"reportId":"mutual_growth" if growth else None,"notApplicableReason":growth_reason},"sources":sources,"sourceClassification":{"status":source_status,"primary":primary,"secondary":secondary,"reportId":report_id,"unfinished":unfinished_weight>=source_rule["unfinishedEvidenceWeightMin"] if source_computable else False,"unfinishedEvidenceWeight":_round(unfinished_weight),"unfinishedThreshold":source_rule["unfinishedEvidenceWeightMin"],"practicalContext":practical_weight>=source_rule["practicalEvidenceWeightMin"] if source_computable else False,"practicalEvidenceWeight":_round(practical_weight),"practicalThreshold":source_rule["practicalEvidenceWeightMin"],"fixedOrderNotice":source_rule["fixedOrderNotice"]},"boundaries":{"relationshipDistance":_round(relationship_boundary_distance) if relationship_boundary_distance is not None else None,"relationshipNear":relationship_boundary_distance is not None and relationship_boundary_distance<3,"sourceDistance":_round(source_boundary_distance) if source_boundary_distance is not None else None,"sourceNear":source_boundary_distance is not None and source_boundary_distance<3},"confidence":confidence,"answers":output_answers,"disclaimer":data["product"]["nature"],"calibrationNotice":data["product"]["scoringNotice"]}
 
 
 def read_answers(path: Path | str) -> tuple[Mapping[str, Any], str]:

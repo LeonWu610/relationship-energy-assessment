@@ -1,8 +1,8 @@
 {
-  "schemaVersion": "1.1",
+  "schemaVersion": "1.2",
   "product": {
-    "title": "这段关系，正在滋养你，还是消耗你？",
-    "subtitle": "你舍不得的，是他，还是那个没有完成的结局？",
+    "title": "这段关系，给你的更多是滋养，还是消耗？",
+    "subtitle": "看清现实相处，也看见什么正在影响你的判断和投入。",
     "nature": "自我觉察与娱乐内容，不构成心理、医疗、法律或关系决策建议",
     "scoringNotice": "所有阈值均为首版产品规则，待真实认知访谈校准；不代表心理测量学效度。"
   },
@@ -71,17 +71,20 @@
     }
   },
   "rules": {
-    "version": "首版产品规则 v1.1，待真实认知访谈校准",
+    "version": "首版产品规则 v1.2，待真实投放数据校准",
     "recentQuestionWeight": 1.25,
+    "recentWeightPolicy": "只对当前仍在关系中的近期事实加权；ended 回看题不因题目在 ongoing 中属于近期题而加权。",
     "relationshipNormalization": "各子维度按已答题目的理论最小/最大加权分线性映射至 0..100；50 表示中点，不是人群常模。",
     "sourceNormalization": "各来源按已答题目的理论最大加权分映射至 0..100；不是概率。",
     "growthGate": {
+      "relationshipAverageMin": 75,
+      "relationshipCoverageMin": 0.85,
       "reciprocityMin": 62,
       "stabilityMin": 62,
       "repairMin": 62,
       "selfPreservationMin": 58,
       "sustainabilityMin": 62,
-      "maxStrongRiskAnswers": 2,
+      "maxStrongRiskAnswers": 0,
       "applicableStages": [
         "ongoing"
       ],
@@ -92,7 +95,7 @@
       "tieGap": 5,
       "secondaryGap": 12,
       "maxPrimarySources": 2,
-      "fallbackRule": "当所有来源均未达到 prominentMin 时，取最高分来源作为主结果；若最高分为 0 则输出 insufficient_answers。",
+      "fallbackRule": "来源覆盖充分但均未达到 prominentMin 时，不把微弱差异包装成明确类型：有少量信号时保留弱领先项供内部解释并展示 sources_not_prominent；五项全为 0 时输出 not_prominent。仅来源覆盖不足时输出 information_insufficient。",
       "fixedOrder": [
         "memory",
         "potential",
@@ -101,20 +104,25 @@
         "loss"
       ],
       "fixedOrderNotice": "仅用于同分时确定性展示，不代表理论高低。",
-      "unfinishedEvidenceWeightMin": 2.0
+      "unfinishedEvidenceWeightMin": 2.0,
+      "practicalEvidenceWeightMin": 1.0
     },
     "strongRiskAnswer": "任一关系子维度 <= -2 的已选选项",
-    "na": "仅展示 all 与当前阶段题；None 和字符串 NA 均不计分。场景外答案完全忽略。",
+    "na": "仅展示 all 与当前阶段题；None 和字符串 NA 均不计分。未发生过的情境不要求按假设情况作答；场景外答案完全忽略。",
     "growthIndependence": "双向生长由关系层门槛独立判定，不与五类留恋来源竞争；来源可主次、并列或不突出。",
     "directionScoring": "情境四选项采用选项级直接方向计分，不做 Likert 反向换算；每题 directionCoverage 记录正负方向与位置分散。",
     "coverage": {
       "totalAnsweredRatioMin": 0.7,
       "sourceAnsweredRatioMin": 0.7,
       "relationshipApplicableRatioMin": 0.65,
-      "relationshipMinApplicableQuestions": 8,
+      "relationshipMinApplicableQuestions": 6,
+      "relationshipMinApplicableQuestionsByStage": {
+        "ongoing": 10,
+        "ended": 6
+      },
       "allQuestionsShown": false,
       "naAllowed": true,
-      "stagePolicy": "仅展示并计入 all 与当前阶段题；覆盖率分母按当前阶段实际适用题计算；场景外答案完全忽略；NA 不计分。"
+      "stagePolicy": "scene 决定题目是否展示；relationshipApplicability 与 sourceApplicable 分别决定题目进入哪一层计分。场景外答案完全忽略；NA 不计分，也不要求用户按假设情况作答。"
     },
     "confidence": {
       "high": {
@@ -177,6 +185,23 @@
         },
         {
           "id": "B",
+          "text": "联系有时多、有时少，但通常能说明原因，我也不需要长时间等着猜",
+          "r": {
+            "reciprocity": 1,
+            "stability": 1,
+            "repair": 0,
+            "selfPreservation": 1
+          },
+          "s": {
+            "memory": 0,
+            "potential": 0,
+            "intermittent": 0,
+            "validation": 0,
+            "loss": 0
+          }
+        },
+        {
+          "id": "C",
           "text": "常隔很久才回，但偶尔一次特别热情会让我又有期待",
           "r": {
             "reciprocity": -2,
@@ -193,28 +218,11 @@
           }
         },
         {
-          "id": "C",
-          "text": "已经不太联系，我主要靠回想过去理解这段关系",
-          "r": {
-            "reciprocity": -1,
-            "stability": -1,
-            "repair": -1,
-            "selfPreservation": 0
-          },
-          "s": {
-            "memory": 2,
-            "potential": 0,
-            "intermittent": 0,
-            "validation": 0,
-            "loss": 1
-          }
-        },
-        {
           "id": "D",
-          "text": "我会反复检查措辞，担心没回是因为自己不够好",
+          "text": "常没有明确回应，我会反复检查措辞，担心是不是自己哪里做得不够好",
           "r": {
             "reciprocity": -1,
-            "stability": -1,
+            "stability": -2,
             "repair": 0,
             "selfPreservation": -2
           },
@@ -234,15 +242,14 @@
       "directionCoverage": {
         "method": "direct_option_scoring",
         "positivePositions": [
-          "A"
+          "A",
+          "B"
         ],
         "negativePositions": [
-          "B",
           "C",
           "D"
         ],
         "sourceSignalPositions": [
-          "B",
           "C",
           "D"
         ]
@@ -252,9 +259,16 @@
       "id": "Q02",
       "scene": "all",
       "recent": true,
+      "recentStages": [
+        "ongoing"
+      ],
       "purpose": "测量分歧后的修复过程",
       "ambiguity": "有些人需要较长冷静时间；关键是是否约定回来处理。",
       "stem": "最近一次不愉快之后，实际情况更接近？",
+      "stemByStage": {
+        "ongoing": "最近一次不愉快之后，实际情况更接近哪一种？",
+        "ended": "回想这段关系里一次不愉快，之后实际发生的情况更接近哪一种？"
+      },
       "options": [
         {
           "id": "A",
@@ -267,8 +281,8 @@
           },
           "s": {
             "memory": 0,
-            "potential": 1,
-            "intermittent": 2,
+            "potential": 0,
+            "intermittent": 0,
             "validation": 0,
             "loss": 0
           }
@@ -341,7 +355,6 @@
           "D"
         ],
         "sourceSignalPositions": [
-          "A",
           "C",
           "D"
         ]
@@ -351,9 +364,9 @@
       "id": "Q03",
       "scene": "all",
       "recent": false,
-      "purpose": "区分现实行动与潜力投射",
+      "purpose": "区分承诺后的现实行动与继续相信的来源",
       "ambiguity": "重大变化确实需要时间，因此同时看小步行动。",
-      "stem": "当对方说“以后会不一样”时，你更常靠什么继续相信？",
+      "stem": "当对方说“以后会不一样”时，接下来实际发生的情况更接近哪一种？",
       "options": [
         {
           "id": "A",
@@ -362,7 +375,7 @@
             "reciprocity": 2,
             "stability": 2,
             "repair": 1,
-            "selfPreservation": 1
+            "selfPreservation": 0
           },
           "s": {
             "memory": 0,
@@ -374,7 +387,7 @@
         },
         {
           "id": "B",
-          "text": "那幅未来很打动我，即使现在还没有太多变化",
+          "text": "对方会谈到未来，但现在还没有太多能看见的变化",
           "r": {
             "reciprocity": -1,
             "stability": -1,
@@ -391,16 +404,16 @@
         },
         {
           "id": "C",
-          "text": "过去有过好的阶段，所以我觉得对方还会变回那时的样子",
+          "text": "现在的相处没有明显改变，我更常想起过去好的阶段",
           "r": {
-            "reciprocity": -1,
-            "stability": -1,
+            "reciprocity": 0,
+            "stability": 0,
             "repair": 0,
             "selfPreservation": 0
           },
           "s": {
             "memory": 2,
-            "potential": 1,
+            "potential": 0,
             "intermittent": 0,
             "validation": 0,
             "loss": 0
@@ -408,7 +421,7 @@
         },
         {
           "id": "D",
-          "text": "只要对方还愿意提未来，我就觉得自己没有被放弃",
+          "text": "实际行动不多，但只要对方还愿意和我谈未来，我就会觉得自己没有被放弃",
           "r": {
             "reciprocity": -1,
             "stability": -1,
@@ -464,9 +477,9 @@
           },
           "s": {
             "memory": 0,
-            "potential": 1,
-            "intermittent": 1,
-            "validation": 1,
+            "potential": 0,
+            "intermittent": 0,
+            "validation": 0,
             "loss": 0
           }
         },
@@ -501,7 +514,7 @@
             "potential": 0,
             "intermittent": 0,
             "validation": 0,
-            "loss": 1
+            "loss": 0
           }
         },
         {
@@ -537,7 +550,6 @@
           "D"
         ],
         "sourceSignalPositions": [
-          "A",
           "C",
           "D"
         ]
@@ -549,14 +561,19 @@
       "recent": false,
       "purpose": "测量边界表达与自我保全",
       "ambiguity": "安全风险场景中不直接表达可能是保护策略。",
+      "userNote": "如果表达不同意见可能带来威胁、报复或人身风险，不必尝试当面对质，可以按实际情况选择“不确定 / 不适用”。",
       "stem": "当对方做了一件事让你不舒服时，你更常怎么做？",
+      "stemByStage": {
+        "ongoing": "当对方做了一件事让你不舒服时，你更常怎么做？",
+        "ended": "回看这段关系，当对方做了一件事让你不舒服时，你当时更常怎么做？"
+      },
       "options": [
         {
           "id": "A",
           "text": "我会先弄清自己的感受和需要，再找合适的时机告诉对方",
           "r": {
-            "reciprocity": 2,
-            "stability": 1,
+            "reciprocity": 0,
+            "stability": 0,
             "repair": 1,
             "selfPreservation": 2
           },
@@ -570,16 +587,16 @@
         },
         {
           "id": "B",
-          "text": "我会告诉自己对方本意不坏，以后会慢慢改变",
+          "text": "我会先让自己冷静，之后再决定要不要把具体事情说清楚",
           "r": {
-            "reciprocity": -1,
-            "stability": -1,
-            "repair": -1,
-            "selfPreservation": -1
+            "reciprocity": 0,
+            "stability": 0,
+            "repair": 1,
+            "selfPreservation": 1
           },
           "s": {
             "memory": 0,
-            "potential": 2,
+            "potential": 0,
             "intermittent": 0,
             "validation": 0,
             "loss": 0
@@ -589,9 +606,9 @@
           "id": "C",
           "text": "我会先忍住；对方偶尔对我好一些，我就不再提了",
           "r": {
-            "reciprocity": -2,
-            "stability": -1,
-            "repair": -2,
+            "reciprocity": 0,
+            "stability": 0,
+            "repair": -1,
             "selfPreservation": -1
           },
           "s": {
@@ -606,7 +623,7 @@
           "id": "D",
           "text": "我担心表达后会失去关系，通常会压下自己的需要",
           "r": {
-            "reciprocity": -1,
+            "reciprocity": 0,
             "stability": 0,
             "repair": -1,
             "selfPreservation": -2
@@ -631,12 +648,9 @@
           "A"
         ],
         "negativePositions": [
-          "B",
-          "C",
           "D"
         ],
         "sourceSignalPositions": [
-          "B",
           "C",
           "D"
         ]
@@ -654,8 +668,8 @@
           "id": "A",
           "text": "某些特别好的旧片段，至今仍会让我心软",
           "r": {
-            "reciprocity": -1,
-            "stability": -1,
+            "reciprocity": 0,
+            "stability": 0,
             "repair": 0,
             "selfPreservation": 0
           },
@@ -671,10 +685,10 @@
           "id": "B",
           "text": "对方偶尔突然出现、关心或示好时，我仍会被触动",
           "r": {
-            "reciprocity": -2,
-            "stability": -2,
-            "repair": -1,
-            "selfPreservation": -1
+            "reciprocity": 0,
+            "stability": 0,
+            "repair": 0,
+            "selfPreservation": 0
           },
           "s": {
             "memory": 0,
@@ -688,8 +702,8 @@
           "id": "C",
           "text": "想到那些还没来得及实现的共同设想，我仍会觉得遗憾",
           "r": {
-            "reciprocity": -1,
-            "stability": -1,
+            "reciprocity": 0,
+            "stability": 0,
             "repair": 0,
             "selfPreservation": 0
           },
@@ -705,10 +719,10 @@
           "id": "D",
           "text": "我能珍惜过去的美好，也会单独看待现在的实际情况",
           "r": {
-            "reciprocity": 2,
-            "stability": 1,
-            "repair": 1,
-            "selfPreservation": 2
+            "reciprocity": 0,
+            "stability": 0,
+            "repair": 0,
+            "selfPreservation": 0
           },
           "s": {
             "memory": 1,
@@ -719,18 +733,12 @@
           }
         }
       ],
-      "relationshipApplicability": [
-        "ended"
-      ],
+      "relationshipApplicability": [],
       "sourceApplicable": true,
       "directionCoverage": {
         "method": "direct_option_scoring",
-        "positivePositions": [
-          "D"
-        ],
-        "negativePositions": [
-          "B"
-        ],
+        "positivePositions": [],
+        "negativePositions": [],
         "sourceSignalPositions": [
           "A",
           "B",
@@ -819,7 +827,7 @@
       "relationshipApplicability": [
         "ongoing"
       ],
-      "sourceApplicable": true,
+      "sourceApplicable": false,
       "directionCoverage": {
         "method": "direct_option_scoring",
         "positivePositions": [
@@ -839,15 +847,19 @@
       "purpose": "识别未完成结局子标签",
       "ambiguity": "需要正式告别是常见需要，不应病理化。",
       "stem": "如果这段关系就停在现在，你最难以接受的是什么？",
+      "stemByStage": {
+        "ongoing": "如果这段关系就停在现在，你最难以接受的是什么？",
+        "ended": "对于已经结束的这段关系，你现在最难接受的是什么？"
+      },
       "options": [
         {
           "id": "A",
           "text": "那些共同计划还没有实现，我想知道再坚持一下会怎样",
           "r": {
-            "reciprocity": -1,
+            "reciprocity": 0,
             "stability": 0,
             "repair": 0,
-            "selfPreservation": -1
+            "selfPreservation": 0
           },
           "s": {
             "memory": 0,
@@ -864,10 +876,10 @@
           "id": "B",
           "text": "这仿佛证明了，我最终还是不值得被坚定地选择",
           "r": {
-            "reciprocity": -1,
+            "reciprocity": 0,
             "stability": 0,
             "repair": 0,
-            "selfPreservation": -2
+            "selfPreservation": 0
           },
           "s": {
             "memory": 0,
@@ -881,10 +893,10 @@
           "id": "C",
           "text": "我害怕失去熟悉的人，以及已经习惯的生活",
           "r": {
-            "reciprocity": -1,
+            "reciprocity": 0,
             "stability": 0,
             "repair": 0,
-            "selfPreservation": -1
+            "selfPreservation": 0
           },
           "s": {
             "memory": 0,
@@ -898,10 +910,10 @@
           "id": "D",
           "text": "我会难过，但即使有些事没有答案，我也能继续自己的生活",
           "r": {
-            "reciprocity": 1,
-            "stability": 1,
+            "reciprocity": 0,
+            "stability": 0,
             "repair": 0,
-            "selfPreservation": 2
+            "selfPreservation": 0
           },
           "s": {
             "memory": 0,
@@ -912,19 +924,12 @@
           }
         }
       ],
-      "relationshipApplicability": [
-        "ongoing",
-        "ended"
-      ],
+      "relationshipApplicability": [],
       "sourceApplicable": true,
       "directionCoverage": {
         "method": "direct_option_scoring",
-        "positivePositions": [
-          "D"
-        ],
-        "negativePositions": [
-          "B"
-        ],
+        "positivePositions": [],
+        "negativePositions": [],
         "sourceSignalPositions": [
           "A",
           "B",
@@ -1033,18 +1038,18 @@
       "id": "Q10",
       "scene": "all",
       "recent": false,
-      "purpose": "观察被选择感与自我价值绑定",
+      "purpose": "观察关系位置是否由持续行动变得清楚",
       "ambiguity": "希望承诺是合理需要，关键在是否吞没自我评价。",
-      "stem": "回想这段关系，当你不太确定自己在对方心里的位置时，什么最影响你的判断？",
+      "stem": "回看这段关系，当需要确认彼此的位置和安排时，实际情况更接近哪一种？",
       "options": [
         {
           "id": "A",
-          "text": "对方平时怎么对我，以及会不会把我放进他的安排里",
+          "text": "对方平时的回应和安排大体一致，我不太需要反复确认自己的位置",
           "r": {
-            "reciprocity": 1,
-            "stability": 1,
+            "reciprocity": 2,
+            "stability": 2,
             "repair": 0,
-            "selfPreservation": 2
+            "selfPreservation": 1
           },
           "s": {
             "memory": 0,
@@ -1056,10 +1061,10 @@
         },
         {
           "id": "B",
-          "text": "对方有没有明确选择我、把我放在重要的位置",
+          "text": "对方很少把关系说清楚，我常需要确认自己是不是被放在重要位置",
           "r": {
             "reciprocity": -1,
-            "stability": 0,
+            "stability": -1,
             "repair": 0,
             "selfPreservation": -1
           },
@@ -1073,7 +1078,7 @@
         },
         {
           "id": "C",
-          "text": "过去那些让我确定自己很重要的时刻",
+          "text": "现在的态度不太明确，我主要靠过去那些被重视的时刻判断",
           "r": {
             "reciprocity": -1,
             "stability": -1,
@@ -1090,7 +1095,7 @@
         },
         {
           "id": "D",
-          "text": "对方偶尔重新靠近、表现得很在意我的时候",
+          "text": "对方偶尔重新靠近时显得很在意，之后又很难确认",
           "r": {
             "reciprocity": -1,
             "stability": -2,
@@ -1101,7 +1106,7 @@
             "memory": 0,
             "potential": 0,
             "intermittent": 2,
-            "validation": 0,
+            "validation": 1,
             "loss": 0
           }
         }
@@ -1117,6 +1122,7 @@
           "A"
         ],
         "negativePositions": [
+          "B",
           "D"
         ],
         "sourceSignalPositions": [
@@ -1130,6 +1136,9 @@
       "id": "Q11",
       "scene": "all",
       "recent": true,
+      "recentStages": [
+        "ongoing"
+      ],
       "purpose": "观察支持的双向性",
       "ambiguity": "短期资源差异可能影响支持方式。",
       "stem": "回想这段关系，当你压力很大、需要支持时，哪种情况更常见？",
@@ -1182,7 +1191,7 @@
             "potential": 0,
             "intermittent": 0,
             "validation": 1,
-            "loss": 2
+            "loss": 0
           }
         },
         {
@@ -1254,10 +1263,10 @@
           "id": "B",
           "text": "如果当时换一种做法，结局会不会不一样",
           "r": {
-            "reciprocity": -1,
+            "reciprocity": 0,
             "stability": 0,
-            "repair": -1,
-            "selfPreservation": -1
+            "repair": 0,
+            "selfPreservation": 0
           },
           "s": {
             "memory": 0,
@@ -1274,10 +1283,10 @@
           "id": "C",
           "text": "对方偶尔回头或联系时，我们是不是还有可能",
           "r": {
-            "reciprocity": -1,
-            "stability": -1,
+            "reciprocity": 0,
+            "stability": 0,
             "repair": 0,
-            "selfPreservation": -1
+            "selfPreservation": 0
           },
           "s": {
             "memory": 0,
@@ -1291,10 +1300,10 @@
           "id": "D",
           "text": "会想起过去，但注意力也能慢慢回到现在的生活",
           "r": {
-            "reciprocity": 1,
-            "stability": 1,
+            "reciprocity": 0,
+            "stability": 0,
             "repair": 0,
-            "selfPreservation": 2
+            "selfPreservation": 0
           },
           "s": {
             "memory": 1,
@@ -1305,19 +1314,12 @@
           }
         }
       ],
-      "relationshipApplicability": [
-        "ended"
-      ],
+      "relationshipApplicability": [],
       "sourceApplicable": true,
       "directionCoverage": {
         "method": "direct_option_scoring",
-        "positivePositions": [
-          "D"
-        ],
-        "negativePositions": [
-          "B",
-          "C"
-        ],
+        "positivePositions": [],
+        "negativePositions": [],
         "sourceSignalPositions": [
           "A",
           "B",
@@ -1332,6 +1334,7 @@
       "recent": true,
       "purpose": "测量冲突中的尊重与安全表达",
       "ambiguity": "若有威胁或暴力，不鼓励当面对质。",
+      "userNote": "如果表达不同意见可能带来威胁、报复或人身风险，安全比把话说完更重要，可以选择“不确定 / 不适用”。",
       "stem": "最近你们意见不同时，哪种情况更接近你的经历？",
       "options": [
         {
@@ -1363,7 +1366,7 @@
           "s": {
             "memory": 0,
             "potential": 0,
-            "intermittent": 1,
+            "intermittent": 0,
             "validation": 1,
             "loss": 2
           }
@@ -1431,15 +1434,19 @@
       "purpose": "识别失去恐惧与外部支持",
       "ambiguity": "现实经济或照护依赖需要具体资源支持，不能简化为心理选择。",
       "stem": "如果想象自己减少投入或彻底放下，最让你犹豫的是什么？",
+      "stemByStage": {
+        "ongoing": "如果想象自己减少投入或彻底放下，最让你犹豫的是什么？",
+        "ended": "现在想到彻底放下这段已经结束的关系，最让你犹豫的是什么？"
+      },
       "options": [
         {
           "id": "A",
           "text": "我担心以后再也遇不到合适的人，也害怕独自生活",
           "r": {
-            "reciprocity": -1,
+            "reciprocity": 0,
             "stability": 0,
             "repair": 0,
-            "selfPreservation": -1
+            "selfPreservation": 0
           },
           "s": {
             "memory": 0,
@@ -1453,10 +1460,10 @@
           "id": "B",
           "text": "如果对方转身选择了别人，我会觉得是自己输掉了",
           "r": {
-            "reciprocity": -1,
+            "reciprocity": 0,
             "stability": 0,
             "repair": 0,
-            "selfPreservation": -2
+            "selfPreservation": 0
           },
           "s": {
             "memory": 0,
@@ -1470,10 +1477,10 @@
           "id": "C",
           "text": "我会先考虑身边有哪些人可以帮助我、手头有哪些资源，以及这个决定会带来什么现实影响",
           "r": {
-            "reciprocity": 1,
-            "stability": 1,
+            "reciprocity": 0,
+            "stability": 0,
             "repair": 0,
-            "selfPreservation": 2
+            "selfPreservation": 0
           },
           "s": {
             "memory": 0,
@@ -1485,39 +1492,34 @@
         },
         {
           "id": "D",
-          "text": "我舍不得那些最美好的时刻，担心以后不会再有相似的体验",
+          "text": "住房、经济、共同照护或其他现实安排，让我很难立刻减少投入",
           "r": {
-            "reciprocity": -1,
+            "reciprocity": 0,
             "stability": 0,
             "repair": 0,
-            "selfPreservation": -1
+            "selfPreservation": 0
           },
           "s": {
-            "memory": 2,
+            "memory": 0,
             "potential": 0,
-            "intermittent": 1,
+            "intermittent": 0,
             "validation": 0,
-            "loss": 1
-          }
+            "loss": 0
+          },
+          "tags": [
+            "practical_constraint"
+          ]
         }
       ],
-      "relationshipApplicability": [
-        "ongoing",
-        "ended"
-      ],
+      "relationshipApplicability": [],
       "sourceApplicable": true,
       "directionCoverage": {
         "method": "direct_option_scoring",
-        "positivePositions": [
-          "C"
-        ],
-        "negativePositions": [
-          "B"
-        ],
+        "positivePositions": [],
+        "negativePositions": [],
         "sourceSignalPositions": [
           "A",
-          "B",
-          "D"
+          "B"
         ]
       }
     },
@@ -1527,7 +1529,7 @@
       "recent": true,
       "purpose": "检查行动修复而非口头道歉",
       "ambiguity": "不同人表达歉意方式不同，重点是后续行为。",
-      "stem": "最近一次对方的行为伤害到你并向你道歉后，哪种情况更接近实际？",
+      "stem": "如果发生过对方的行为伤害到你、之后又向你道歉的情况，哪种更接近实际？",
       "options": [
         {
           "id": "A",
@@ -1540,7 +1542,7 @@
           },
           "s": {
             "memory": 0,
-            "potential": 1,
+            "potential": 0,
             "intermittent": 2,
             "validation": 0,
             "loss": 0
@@ -1657,8 +1659,8 @@
             "memory": 0,
             "potential": 0,
             "intermittent": 0,
-            "validation": 1,
-            "loss": 2
+            "validation": 0,
+            "loss": 0
           }
         },
         {
@@ -1668,14 +1670,14 @@
             "reciprocity": -1,
             "stability": -1,
             "repair": 0,
-            "selfPreservation": -1
+            "selfPreservation": -2
           },
           "s": {
             "memory": 2,
             "potential": 0,
             "intermittent": 0,
             "validation": 0,
-            "loss": 1
+            "loss": 0
           }
         },
         {
@@ -1692,7 +1694,7 @@
             "potential": 2,
             "intermittent": 0,
             "validation": 0,
-            "loss": 1
+            "loss": 0
           }
         }
       ],
@@ -1712,7 +1714,6 @@
           "D"
         ],
         "sourceSignalPositions": [
-          "B",
           "C",
           "D"
         ]
@@ -1745,12 +1746,12 @@
         },
         {
           "id": "B",
-          "text": "有时密切、有时各忙各的，但彼此基本知道原因",
+          "text": "常常突然热络或突然冷下来，我很难判断接下来会怎样",
           "r": {
-            "reciprocity": 1,
-            "stability": 1,
+            "reciprocity": -1,
+            "stability": -2,
             "repair": 0,
-            "selfPreservation": 1
+            "selfPreservation": -1
           },
           "s": {
             "memory": 0,
@@ -1762,17 +1763,17 @@
         },
         {
           "id": "C",
-          "text": "常常突然热络或突然冷下来，我很难判断接下来会怎样",
+          "text": "有时密切、有时各忙各的，但彼此基本知道原因",
           "r": {
-            "reciprocity": -1,
-            "stability": -2,
+            "reciprocity": 1,
+            "stability": 1,
             "repair": 0,
-            "selfPreservation": -1
+            "selfPreservation": 1
           },
           "s": {
             "memory": 0,
             "potential": 0,
-            "intermittent": 2,
+            "intermittent": 0,
             "validation": 0,
             "loss": 0
           }
@@ -1798,52 +1799,33 @@
       "relationshipApplicability": [
         "ongoing"
       ],
-      "sourceApplicable": true,
+      "sourceApplicable": false,
       "directionCoverage": {
         "method": "direct_option_scoring",
         "positivePositions": [
           "A",
-          "B"
+          "C"
         ],
         "negativePositions": [
-          "C"
+          "B"
         ],
-        "sourceSignalPositions": [
-          "C"
-        ]
+        "sourceSignalPositions": []
       }
     },
     {
       "id": "Q18",
       "scene": "all",
       "recent": false,
-      "purpose": "识别比较与价值确认",
+      "purpose": "识别比较情境中的自我保留与价值确认",
       "ambiguity": "关系边界不清时寻求明确回应是合理的。",
       "stem": "回想这段关系，当你察觉对方把更多注意力放在别人身上时，你通常会怎么做？",
       "options": [
         {
           "id": "A",
-          "text": "我会努力让自己更有吸引力，希望对方重新把我放在最重要的位置",
+          "text": "我会先分清事实和自己的猜测，再决定是否需要说明感受和边界",
           "r": {
-            "reciprocity": -1,
-            "stability": -1,
-            "repair": 0,
-            "selfPreservation": -2
-          },
-          "s": {
-            "memory": 0,
-            "potential": 0,
-            "intermittent": 0,
-            "validation": 2,
-            "loss": 1
-          }
-        },
-        {
-          "id": "B",
-          "text": "我会先分清事实和自己的猜测，再向对方说明我的感受和边界",
-          "r": {
-            "reciprocity": 2,
-            "stability": 1,
+            "reciprocity": 0,
+            "stability": 0,
             "repair": 1,
             "selfPreservation": 2
           },
@@ -1856,27 +1838,44 @@
           }
         },
         {
-          "id": "C",
-          "text": "我会想起过去对方只关注我的时候，希望那种感觉能够回来",
+          "id": "B",
+          "text": "我会先让自己缓一缓，也保留原来的安排，再判断这件事是否需要沟通",
           "r": {
-            "reciprocity": -1,
-            "stability": -1,
+            "reciprocity": 0,
+            "stability": 0,
             "repair": 0,
-            "selfPreservation": -1
+            "selfPreservation": 2
           },
           "s": {
-            "memory": 2,
-            "potential": 1,
+            "memory": 0,
+            "potential": 0,
             "intermittent": 0,
-            "validation": 1,
+            "validation": 0,
             "loss": 0
+          }
+        },
+        {
+          "id": "C",
+          "text": "我会努力让自己更有吸引力，希望对方重新把我放在重要的位置",
+          "r": {
+            "reciprocity": 0,
+            "stability": 0,
+            "repair": 0,
+            "selfPreservation": -2
+          },
+          "s": {
+            "memory": 0,
+            "potential": 0,
+            "intermittent": 0,
+            "validation": 2,
+            "loss": 1
           }
         },
         {
           "id": "D",
           "text": "我担心失去这段关系，所以即使介意也尽量不表现出来",
           "r": {
-            "reciprocity": -1,
+            "reciprocity": 0,
             "stability": 0,
             "repair": -1,
             "selfPreservation": -2
@@ -1898,15 +1897,12 @@
       "directionCoverage": {
         "method": "direct_option_scoring",
         "positivePositions": [
-          "B"
+          "A"
         ],
         "negativePositions": [
-          "A",
-          "C",
           "D"
         ],
         "sourceSignalPositions": [
-          "A",
           "C",
           "D"
         ]
@@ -1918,7 +1914,7 @@
       "recent": true,
       "purpose": "观察决策与现实协作",
       "ambiguity": "小事无需每次共同决定。",
-      "stem": "最近一次遇到会影响你们两个人的决定时，通常是怎么定下来的？",
+      "stem": "最近遇到会影响你们两个人的决定时，更常是怎么定下来的？",
       "options": [
         {
           "id": "A",
@@ -1992,7 +1988,7 @@
       "relationshipApplicability": [
         "ongoing"
       ],
-      "sourceApplicable": true,
+      "sourceApplicable": false,
       "directionCoverage": {
         "method": "direct_option_scoring",
         "positivePositions": [
@@ -2018,10 +2014,10 @@
           "id": "A",
           "text": "把当时没说清楚的事弄明白",
           "r": {
-            "reciprocity": -1,
+            "reciprocity": 0,
             "stability": 0,
             "repair": 0,
-            "selfPreservation": -1
+            "selfPreservation": 0
           },
           "s": {
             "memory": 0,
@@ -2038,10 +2034,10 @@
           "id": "B",
           "text": "确认自己对对方来说确实重要过",
           "r": {
-            "reciprocity": -1,
+            "reciprocity": 0,
             "stability": 0,
             "repair": 0,
-            "selfPreservation": -2
+            "selfPreservation": 0
           },
           "s": {
             "memory": 0,
@@ -2055,10 +2051,10 @@
           "id": "C",
           "text": "再有一次像从前那样好好相处的机会",
           "r": {
-            "reciprocity": -1,
-            "stability": -1,
+            "reciprocity": 0,
+            "stability": 0,
             "repair": 0,
-            "selfPreservation": -1
+            "selfPreservation": 0
           },
           "s": {
             "memory": 2,
@@ -2072,10 +2068,10 @@
           "id": "D",
           "text": "接受可能不会再有回应，自己继续往前走",
           "r": {
-            "reciprocity": 1,
-            "stability": 1,
+            "reciprocity": 0,
+            "stability": 0,
             "repair": 0,
-            "selfPreservation": 2
+            "selfPreservation": 0
           },
           "s": {
             "memory": 0,
@@ -2086,19 +2082,12 @@
           }
         }
       ],
-      "relationshipApplicability": [
-        "ended"
-      ],
+      "relationshipApplicability": [],
       "sourceApplicable": true,
       "directionCoverage": {
         "method": "direct_option_scoring",
-        "positivePositions": [
-          "D"
-        ],
-        "negativePositions": [
-          "B",
-          "C"
-        ],
+        "positivePositions": [],
+        "negativePositions": [],
         "sourceSignalPositions": [
           "A",
           "B",
@@ -2208,21 +2197,22 @@
       "id": "Q22",
       "scene": "all",
       "recent": false,
-      "purpose": "区分现实人物与理想版本",
-      "ambiguity": "看到潜能并非问题，需与当前事实并看。",
-      "stem": "当你向朋友谈起对方时，所说的内容通常更接近哪一种？",
+      "purpose": "观察不同意见进入对话后，是否得到尊重和回应",
+      "ambiguity": "如果表达不同意见可能带来威胁或报复，回避当面对质可能是保护策略。",
+      "userNote": "如果表达不同意见可能带来威胁、报复或人身风险，安全比完成沟通更重要，可以选择“不确定 / 不适用”。",
+      "stem": "回看这段关系，当你认真说出一个和对方不同的想法或需要时，实际更常发生什么？",
       "options": [
         {
           "id": "A",
-          "text": "主要是过去真实发生过的温柔和默契",
+          "text": "我很少完整说出不同意见，所以也不太知道对方会怎样回应",
           "r": {
             "reciprocity": 0,
             "stability": 0,
             "repair": 0,
-            "selfPreservation": 0
+            "selfPreservation": -2
           },
           "s": {
-            "memory": 2,
+            "memory": 0,
             "potential": 0,
             "intermittent": 0,
             "validation": 0,
@@ -2231,16 +2221,16 @@
         },
         {
           "id": "B",
-          "text": "主要是我想象中，对方以后准备好了、愿意改变时会成为的样子",
+          "text": "对方会听，但最后通常还是按对方原来的想法来",
           "r": {
             "reciprocity": -1,
-            "stability": -1,
-            "repair": 0,
-            "selfPreservation": 0
+            "stability": 0,
+            "repair": -1,
+            "selfPreservation": -1
           },
           "s": {
             "memory": 0,
-            "potential": 2,
+            "potential": 0,
             "intermittent": 0,
             "validation": 0,
             "loss": 0
@@ -2248,16 +2238,16 @@
         },
         {
           "id": "C",
-          "text": "我既会说欣赏对方的地方，也能如实说出对方目前做不到的事",
+          "text": "谈到一半容易变成指责、冷处理或转移话题，问题很少真正谈完",
           "r": {
-            "reciprocity": 1,
-            "stability": 1,
-            "repair": 0,
-            "selfPreservation": 2
+            "reciprocity": -2,
+            "stability": -1,
+            "repair": -2,
+            "selfPreservation": -1
           },
           "s": {
-            "memory": 1,
-            "potential": 1,
+            "memory": 0,
+            "potential": 0,
             "intermittent": 0,
             "validation": 0,
             "loss": 0
@@ -2265,18 +2255,18 @@
         },
         {
           "id": "D",
-          "text": "主要是对方曾经怎样选择我，以及那让我感到自己有多特别",
+          "text": "对方会先听完，再说自己的想法；我们不一定同意，但能继续讨论",
           "r": {
-            "reciprocity": -1,
-            "stability": 0,
-            "repair": 0,
-            "selfPreservation": -1
+            "reciprocity": 2,
+            "stability": 1,
+            "repair": 2,
+            "selfPreservation": 2
           },
           "s": {
-            "memory": 1,
+            "memory": 0,
             "potential": 0,
             "intermittent": 0,
-            "validation": 2,
+            "validation": 0,
             "loss": 0
           }
         }
@@ -2285,19 +2275,17 @@
         "ongoing",
         "ended"
       ],
-      "sourceApplicable": true,
+      "sourceApplicable": false,
       "directionCoverage": {
         "method": "direct_option_scoring",
         "positivePositions": [
+          "D"
+        ],
+        "negativePositions": [
+          "B",
           "C"
         ],
-        "negativePositions": [],
-        "sourceSignalPositions": [
-          "A",
-          "B",
-          "C",
-          "D"
-        ]
+        "sourceSignalPositions": []
       }
     },
     {
@@ -2338,8 +2326,8 @@
             "memory": 0,
             "potential": 0,
             "intermittent": 2,
-            "validation": 2,
-            "loss": 1
+            "validation": 1,
+            "loss": 0
           }
         },
         {
@@ -2405,15 +2393,19 @@
       "purpose": "识别结束关系想象中的资源与恐惧",
       "ambiguity": "现实住房、经济或安全约束应优先处理。",
       "stem": "如果这段关系不再给你期待的回应，哪种情况更接近你的感受？",
+      "stemByStage": {
+        "ongoing": "如果这段关系不再给你期待的回应，哪种情况更接近你的感受？",
+        "ended": "关系结束后，当你意识到期待的回应可能不会再出现，哪种感受更接近你？"
+      },
       "options": [
         {
           "id": "A",
           "text": "我担心生活会突然空下来，不知道还能依靠什么支撑自己",
           "r": {
-            "reciprocity": -1,
+            "reciprocity": 0,
             "stability": 0,
             "repair": 0,
-            "selfPreservation": -2
+            "selfPreservation": 0
           },
           "s": {
             "memory": 0,
@@ -2427,10 +2419,10 @@
           "id": "B",
           "text": "我会觉得自己失去了证明“值得被爱”的机会",
           "r": {
-            "reciprocity": -1,
+            "reciprocity": 0,
             "stability": 0,
             "repair": 0,
-            "selfPreservation": -2
+            "selfPreservation": 0
           },
           "s": {
             "memory": 0,
@@ -2444,10 +2436,10 @@
           "id": "C",
           "text": "我会怀念这段关系，但朋友、爱好和其他生活支撑也能帮助我度过",
           "r": {
-            "reciprocity": 1,
-            "stability": 1,
+            "reciprocity": 0,
+            "stability": 0,
             "repair": 0,
-            "selfPreservation": 2
+            "selfPreservation": 0
           },
           "s": {
             "memory": 1,
@@ -2461,34 +2453,26 @@
           "id": "D",
           "text": "我担心自己刚决定放下，对方就变成了我一直期待的样子",
           "r": {
-            "reciprocity": -1,
+            "reciprocity": 0,
             "stability": 0,
             "repair": 0,
-            "selfPreservation": -1
+            "selfPreservation": 0
           },
           "s": {
             "memory": 0,
             "potential": 2,
             "intermittent": 0,
-            "validation": 1,
+            "validation": 0,
             "loss": 1
           }
         }
       ],
-      "relationshipApplicability": [
-        "ongoing",
-        "ended"
-      ],
+      "relationshipApplicability": [],
       "sourceApplicable": true,
       "directionCoverage": {
         "method": "direct_option_scoring",
-        "positivePositions": [
-          "C"
-        ],
-        "negativePositions": [
-          "A",
-          "B"
-        ],
+        "positivePositions": [],
+        "negativePositions": [],
         "sourceSignalPositions": [
           "A",
           "B",
@@ -2535,7 +2519,7 @@
             "memory": 0,
             "potential": 0,
             "intermittent": 2,
-            "validation": 1,
+            "validation": 0,
             "loss": 0
           }
         },
@@ -2570,7 +2554,7 @@
             "potential": 0,
             "intermittent": 0,
             "validation": 1,
-            "loss": 2
+            "loss": 0
           }
         }
       ],
@@ -2606,10 +2590,10 @@
           "id": "A",
           "text": "它们是关系的一部分，我也会和其他日常放在一起看",
           "r": {
-            "reciprocity": 1,
-            "stability": 1,
-            "repair": 1,
-            "selfPreservation": 1
+            "reciprocity": 0,
+            "stability": 0,
+            "repair": 0,
+            "selfPreservation": 0
           },
           "s": {
             "memory": 1,
@@ -2623,10 +2607,10 @@
           "id": "B",
           "text": "它们让我觉得，只要好的时候足够好，其他时候的不顺也能接受",
           "r": {
-            "reciprocity": -1,
-            "stability": -2,
-            "repair": -1,
-            "selfPreservation": -1
+            "reciprocity": 0,
+            "stability": 0,
+            "repair": 0,
+            "selfPreservation": 0
           },
           "s": {
             "memory": 0,
@@ -2640,10 +2624,10 @@
           "id": "C",
           "text": "它们更像这段关系本来的样子，后来的变化只是暂时的",
           "r": {
-            "reciprocity": -1,
-            "stability": -1,
+            "reciprocity": 0,
+            "stability": 0,
             "repair": 0,
-            "selfPreservation": -1
+            "selfPreservation": 0
           },
           "s": {
             "memory": 2,
@@ -2657,10 +2641,10 @@
           "id": "D",
           "text": "它们让我相信，对方以后还有可能变成我期待的样子",
           "r": {
-            "reciprocity": -1,
-            "stability": -1,
+            "reciprocity": 0,
+            "stability": 0,
             "repair": 0,
-            "selfPreservation": -1
+            "selfPreservation": 0
           },
           "s": {
             "memory": 0,
@@ -2671,21 +2655,12 @@
           }
         }
       ],
-      "relationshipApplicability": [
-        "ongoing",
-        "ended"
-      ],
+      "relationshipApplicability": [],
       "sourceApplicable": true,
       "directionCoverage": {
         "method": "direct_option_scoring",
-        "positivePositions": [
-          "A"
-        ],
-        "negativePositions": [
-          "B",
-          "C",
-          "D"
-        ],
+        "positivePositions": [],
+        "negativePositions": [],
         "sourceSignalPositions": [
           "A",
           "B",
@@ -2706,8 +2681,8 @@
           "id": "A",
           "text": "找到方便的时间，直接说出自己想谈的事",
           "r": {
-            "reciprocity": 1,
-            "stability": 1,
+            "reciprocity": 0,
+            "stability": 0,
             "repair": 2,
             "selfPreservation": 1
           },
@@ -2723,8 +2698,8 @@
           "id": "B",
           "text": "先想清楚怎么说，再选一个双方状态合适的时间",
           "r": {
-            "reciprocity": 1,
-            "stability": 1,
+            "reciprocity": 0,
+            "stability": 0,
             "repair": 1,
             "selfPreservation": 2
           },
@@ -2740,8 +2715,8 @@
           "id": "C",
           "text": "会反复观察对方的态度，常常推迟开口",
           "r": {
-            "reciprocity": -1,
-            "stability": -1,
+            "reciprocity": 0,
+            "stability": 0,
             "repair": -1,
             "selfPreservation": -1
           },
@@ -2757,7 +2732,7 @@
           "id": "D",
           "text": "大多最后没有说，等事情自己过去",
           "r": {
-            "reciprocity": -1,
+            "reciprocity": 0,
             "stability": 0,
             "repair": -1,
             "selfPreservation": -2
@@ -2774,7 +2749,7 @@
       "relationshipApplicability": [
         "ongoing"
       ],
-      "sourceApplicable": true,
+      "sourceApplicable": false,
       "directionCoverage": {
         "method": "direct_option_scoring",
         "positivePositions": [
@@ -2782,7 +2757,6 @@
           "B"
         ],
         "negativePositions": [
-          "C",
           "D"
         ],
         "sourceSignalPositions": []
@@ -2795,6 +2769,10 @@
       "purpose": "综合现实、回忆和未来的权重",
       "ambiguity": "当下处于危机期时应结合更长观察窗口。",
       "stem": "当你考虑是否继续为这段关系投入时，你最看重哪一种依据？",
+      "stemByStage": {
+        "ongoing": "当你考虑是否继续为这段关系投入时，你最看重哪一种依据？",
+        "ended": "当你判断是否还要继续把注意力和期待放在这段已结束的关系上时，你最看重哪一种依据？"
+      },
       "options": [
         {
           "id": "A",
@@ -2817,10 +2795,10 @@
           "id": "B",
           "text": "对方曾经描述过的未来，以及这段关系尚未实现的可能",
           "r": {
-            "reciprocity": -1,
+            "reciprocity": 0,
             "stability": 0,
             "repair": 0,
-            "selfPreservation": -1
+            "selfPreservation": 0
           },
           "s": {
             "memory": 0,
@@ -2837,10 +2815,10 @@
           "id": "C",
           "text": "最近一段时间里，对方的实际行动、处理问题的方式，以及我在关系中的状态",
           "r": {
-            "reciprocity": 2,
-            "stability": 2,
-            "repair": 2,
-            "selfPreservation": 2
+            "reciprocity": 0,
+            "stability": 0,
+            "repair": 0,
+            "selfPreservation": 0
           },
           "s": {
             "memory": 0,
@@ -2854,10 +2832,10 @@
           "id": "D",
           "text": "对方每次重新靠近时，那种让我觉得自己仍被需要的感觉",
           "r": {
-            "reciprocity": -1,
-            "stability": -1,
+            "reciprocity": 0,
+            "stability": 0,
             "repair": 0,
-            "selfPreservation": -1
+            "selfPreservation": 0
           },
           "s": {
             "memory": 0,
@@ -2868,19 +2846,12 @@
           }
         }
       ],
-      "relationshipApplicability": [
-        "ongoing",
-        "ended"
-      ],
+      "relationshipApplicability": [],
       "sourceApplicable": true,
       "directionCoverage": {
         "method": "direct_option_scoring",
-        "positivePositions": [
-          "C"
-        ],
-        "negativePositions": [
-          "D"
-        ],
+        "positivePositions": [],
+        "negativePositions": [],
         "sourceSignalPositions": [
           "A",
           "B",
@@ -2901,6 +2872,13 @@
         "想到过去时，你更清楚现在需要什么，还是更难判断",
         "你能否同时承认过去有美好、现在也可能不同"
       ],
+      "signalsByStage": {
+        "ended": [
+          "关系结束前较长一段时间的相处，和最美好的阶段是否相似",
+          "想到过去时，你更清楚现在需要什么，还是更难判断",
+          "你能否同时承认过去有美好、关系后来也可能不同"
+        ]
+      },
       "strengths": "你很珍视这段关系曾经带给你的感受，也记得那些好的时刻。",
       "risks": "如果过去的美好总是先浮现出来，你可能会忽略这段关系最近已经发生的变化。",
       "actions": [
@@ -2908,6 +2886,13 @@
         "看一眼两组内容：哪些仍在发生，哪些只属于过去",
         "选一件与这段关系无关、但能让自己舒服的小事去做"
       ],
+      "actionsByStage": {
+        "ended": [
+          "各写三条“过去让我珍惜的事”和“关系结束前实际发生的事”",
+          "看一眼两组内容：哪些美好仍能由你保留，哪些相处已经改变",
+          "选一件与这段关系无关、但能让自己舒服的小事去做"
+        ]
+      },
       "observationPeriod": "按你舒服的节奏",
       "share": "愿我珍惜来时的光，也看清此刻脚下的路。",
       "safety": "若存在暴力、威胁、强控制、跟踪或人身风险，优先联系可信赖的人、当地紧急服务和专业支持；紧急危险时联系当地紧急服务。"
@@ -2923,6 +2908,13 @@
         "这份期待让你更安心，还是让决定一直悬着",
         "如果未来保持现状，你现在最需要照顾什么"
       ],
+      "signalsByStage": {
+        "ended": [
+          "当时期待的变化，后来转成过哪些持续行动，哪些停在描述",
+          "你现在更舍不得的是这段关系，还是没有实现的共同计划",
+          "如果不以复合为前提，其中哪些愿望仍然属于你自己"
+        ]
+      },
       "strengths": "你愿意给对方和这段关系一些时间，而不是一看到问题就放弃。",
       "risks": "如果未来想象占了太多位置，当下是否合适可能会变得不容易判断。",
       "actions": [
@@ -2930,6 +2922,13 @@
         "再写一句“最近实际发生的是……”",
         "比较两句之间的距离，不急着马上做决定"
       ],
+      "actionsByStage": {
+        "ended": [
+          "写下当时最在意的一项期待，再写一条后来实际发生的事实",
+          "把未完成的共同计划分成两列：仍属于我的愿望；只属于这段关系的设想",
+          "允许自己为没有发生的未来难过，但不把遗憾自动当成应该复合的证据"
+        ]
+      },
       "observationPeriod": "按你舒服的节奏",
       "share": "愿期待照亮远方，也不遮住今天的模样。",
       "safety": "若存在暴力、威胁、强控制、跟踪或人身风险，优先联系可信赖的人、当地紧急服务和专业支持；紧急危险时联系当地紧急服务。"
@@ -2937,7 +2936,7 @@
     "intermittent_reward": {
       "originalName": "相处起伏来源",
       "gentleAlias": "对方忽近忽远时，你会更难看清这段关系",
-      "core": "从这次答案来看，对方偶尔特别热情或特别冷淡时，你的心情和对这段关系的想法，都会跟着明显变化。",
+      "core": "从这次答案来看，偶尔突然的热情、短暂的改变或某次特别贴心，在你判断这段关系时占了较大位置。",
       "energy": "一次热情可能让你重新燃起希望，一次冷淡又让你陷入不安。把时间拉长来看，更值得留意的是：这些特别的时刻，在平常的相处里究竟占了多少。",
       "attachment": "让你在意的，可能是对方突然靠近时的心动、联系频率的变化，以及你总在等待的下一次消息。",
       "signals": [
@@ -2981,16 +2980,16 @@
     "loss_fear": {
       "originalName": "害怕失去这段关系",
       "gentleAlias": "想到可能失去这段关系时，你会更难做决定",
-      "core": "从这次答案来看，当你在想要不要继续或放下时，你也会担心：离开以后一个人怎么办，生活会不会突然空下来，已经习惯的安排又该怎么改变。",
-      "energy": "这些担心并不说明你软弱。先看看身边有哪些人可以支持你、哪些生活仍由你自己掌握，可能会让你更清楚自己真正想怎么选。",
-      "attachment": "让你舍不得的，可能是已经习惯的陪伴、共同的生活节奏，以及想到要改变这一切时的不安。",
+      "core": "从这次答案来看，想到关系减弱、结束或对方离开时，失去这段连接以及随之而来的变化，会明显影响你的判断。",
+      "energy": "这些担心并不说明你软弱。把情绪上的失去、生活中的实际改变，以及身边已有的支持分开看，可能会让你更清楚自己真正想怎么选。",
+      "attachment": "让你舍不得的，可能是已经习惯的陪伴、这段连接本身，或想到生活将发生变化时的不安；具体是哪一项，要以下方引用的答案为准。",
       "signals": [
         "想到关系变化时，你最担心的是感受还是现实安排",
         "你目前有哪些关系外的支持",
         "担心是否让你把自己的需要放到了后面"
       ],
       "strengths": "你可能珍惜连接，也会认真考虑决定对生活的影响。",
-      "risks": "如果对失去的担心太强，即使现在的关系已经让你很不舒服，你也可能因为害怕变化而一直拖着不做决定。",
+      "risks": "如果对失去的担心太强，当关系里出现让你不舒服的事实时，你也可能因为害怕变化而很难单独看清它。",
       "actions": [
         "写下一个最具体的担心，不必一次解决全部",
         "在身边的人、日常安排和可用资源中，找出一个现有支持",
@@ -3046,23 +3045,33 @@
     },
     "sources_not_prominent": {
       "originalName": "更看重眼前的相处",
-      "gentleAlias": "你更看重眼前的相处",
-      "core": "比起过去留下的美好、对未来的设想，或偶尔一次格外甜蜜的相处，你更看重这段关系平时是什么样：对方怎么回应你，遇到问题愿不愿意一起面对，说过的话后来有没有做到。你对这段关系的判断，主要来自这些每天都能看见的小事。",
-      "energy": "这意味着，判断这段关系时，你手里有不少看得见的事实。哪些做法让你安心，哪些事情一直没有谈清，哪些改变只是短暂出现，都可以从最近的相处里找到答案。",
+      "gentleAlias": "五类牵引都不突出",
+      "core": "这组答案没有显示五类影响因素中的某一项格外突出。与其把微弱差异当成标签，更适合回到关系里看得见的事实。",
+      "energy": "可以继续区分：哪些做法让你安心，哪些事情一直没有谈清，哪些改变只是短暂出现。答案应当来自真实相处，而不是为了得到一个类型勉强解释自己。",
       "attachment": "比起给自己或关系贴标签，你更需要看的，是答应过的事有没有持续做到，谈过的问题后来有没有变化，以及你是否仍能说出真实想法、安排自己的生活。",
       "signals": [
         "对方答应过的事，后来有没有持续做到",
         "一件事让你不舒服后，它有没有真正被谈过",
         "你的朋友、爱好和个人安排，是否仍由你自己决定"
       ],
-      "strengths": "你目前较少只凭一次特别好的时刻或想象中的未来判断关系，也会看对方平时实际怎么做。",
+      "strengths": "本次答案没有被某一种留恋来源明显主导，这为你回到具体事实保留了空间。",
       "risks": "看得清楚，不等于问题已经解决。后来又能正常相处，也可能只是某个问题没有再被提起；真正值得留意的，是双方有没有把彼此介意的地方说清楚，以及相似的问题再次出现时，处理方式有没有变化。",
       "actions": [
         "选一件最近让你感到被支持的事，具体告诉对方：你希望以后哪些做法能继续",
         "写下此刻最重要的一项关系需要，再列出对方最近做过哪些回应；没有发生的部分也如实保留",
         "下一次出现分歧时，除了看当时有没有和好，也看一两周后类似情况是否真的有所不同"
       ],
+      "actionsByStage": {
+        "ended": [
+          "回看一件过去让你感到被支持的事，再写下这种支持后来是否持续",
+          "写下当时最重要的一项关系需要，以及它实际得到过哪些回应",
+          "选一个反复出现过的问题，区分“后来不再提”和“后来真的改变”"
+        ]
+      },
       "observationPeriod": "未来两到四周，或下一次真实分歧发生后",
+      "observationPeriodByStage": {
+        "ended": "按你舒服的节奏回看"
+      },
       "share": "愿我在爱里感到安心，也始终不必把自己放在身后。",
       "safety": "若存在暴力、威胁、强控制、跟踪或人身风险，优先联系可信赖的人、当地紧急服务和专业支持；紧急危险时联系当地紧急服务。"
     },
@@ -3119,8 +3128,8 @@
           "ongoing": "这段关系给你的安心，多过疲惫",
           "ended": "这段经历给过你更多支持，也留下了一些疲惫"
         },
-        "summary": "{historyPrefix}从这组答案看，你从这段关系中得到的稳定回应和实际支持更多。重要的事大多有机会商量，关系也没有明显打乱你的日常。不过，有些不舒服可能要等很久才说出来；有些时候，你也会先改变自己的安排。整体来看，这段关系让你安心的时候更多，但那些让你费力的地方，也不该被轻轻带过。",
-        "detail": "这份结果里，产生矛盾后能不能一起解决，是接下来值得留意的地方。这里并不是说你们处理得不好，而是可以看看：相似的问题会不会反复出现？谈过以后，彼此的做法有没有变化？"
+        "summary": "{historyPrefix}从这组答案看，稳定回应和实际支持多于让你疲惫的部分。四个观察面向并不完全一致：{strongestLabel}相对更稳，{lowestLabel}则更值得结合具体经历继续看。整体偏滋养，不代表每个时刻都轻松，也不需要忽略答案里已经出现的不舒服。",
+        "detail": "在你这次的回答里，{lowestLabel}相对靠后。这不是仅凭一个分数认定问题，而是提示你回看：相关情况是偶尔发生，还是会反复出现并带来现实代价。"
       },
       "mixed": {
         "level": "mixed",
@@ -3132,28 +3141,28 @@
           "ongoing": "滋养与消耗在这段关系里并存",
           "ended": "这段经历既有滋养，也留下了消耗"
         },
-        "summary": "{historyPrefix}你能感受到一些真实支持，但维持关系也会消耗相当一部分精力。安心和疲惫并不是互相否定，而可能来自不同情境：有些时刻双方能够靠近，有些问题却需要你独自承受或反复确认。",
-        "detail": "{lowestLabel}是理解消耗从哪里产生的一条线索；需要结合它出现的频率、持续时间和对生活的影响一起判断。"
+        "summary": "{historyPrefix}你得到过一些真实支持，答案里也同时出现了让你费力的相处事实。安心和疲惫并不互相否定，它们可能来自不同情境，也可能落在不同的关系面向上。",
+        "detail": "这次答案里，{strongestLabel}相对更稳，而{lowestLabel}相对更弱。两者之间的反差，是理解这段关系为什么既让你留恋、又让你累的一条线索。"
       },
       "consuming": {
         "level": "mostly_consuming",
         "headline": {
           "ongoing": "你正在为这段关系，付出太多心力",
-          "ended": "这段关系留下的疲惫，比你想象中更重"
+          "ended": "这段关系留下的疲惫，仍然很重"
         },
         "title": {
           "ongoing": "这段关系目前整体偏消耗",
           "ended": "这段经历留下的消耗更明显"
         },
-        "summary": "{historyPrefix}从这组答案看，你为了维持关系付出的情绪和生活成本，已经多于稳定获得的回应。消耗可能不只来自争执本身，也来自等待、猜测、独自消化问题，或逐渐调整自己的生活来适应关系。",
-        "detail": "{lowestLabel}是当前较明显的压力来源之一，但结果不会把复杂处境归结为单一原因。"
+        "summary": "{historyPrefix}从这组答案看，让你费力的相处事实多于稳定获得的支持，至少有一个重要面向持续偏弱。这个结论描述的是本次回答呈现的整体方向，不替你补写题目之外的经历。",
+        "detail": "{lowestLabel}是较明显的压力线索之一；还需要结合下方列出的具体回答，判断它出现得多不多、持续多久，以及有没有影响你的生活。"
       },
       "historyPrefix": {
         "ongoing": "",
         "ended": "回看这段关系，"
       },
       "nourishingAverageMin": 75,
-      "nourishingMaxStrongRiskAnswers": 1,
+      "nourishingMaxStrongRiskAnswers": 0,
       "supportiveAverageMin": 62,
       "mixedAverageMin": 50
     },
@@ -3163,8 +3172,12 @@
         "summaryTemplate": "{reportCore}"
       },
       "fallback": {
-        "title": "你更看重眼前的相处",
-        "summary": "比起过去留下的美好、对未来的设想，或偶尔一次格外甜蜜的相处，你更看重这段关系平时是什么样：对方怎么回应你，遇到问题愿不愿意一起面对，说过的话后来有没有做到。你对这段关系的判断，主要来自这些每天都能看见的小事。",
+        "statuses": [
+          "fallback",
+          "not_prominent"
+        ],
+        "title": "五类牵引都不突出，更适合回到眼前事实",
+        "summary": "这组答案没有显示过去的美好、未来期待、偶尔高光、被重视需求或害怕失去中的某一项格外突出。与其勉强归类，更适合回到现实相处：对方怎样回应你，问题能否一起处理，说过的话后来有没有做到。",
         "presentationReportId": "sources_not_prominent"
       },
       "combined": {
@@ -3177,9 +3190,10 @@
       },
       "primary": {
         "titleTemplate": "{primaryNames}，更容易影响你现在的判断",
-        "summaryTemplate": "{reportCore}{boundaryNote}{unfinishedNote}",
-        "boundaryNote": " 不过它与下一项比较接近，更适合作为观察方向，而不是固定标签。",
-        "unfinishedNote": " 答案中也出现了对未完成部分的在意。"
+        "summaryTemplate": "{reportCore}{secondaryNote}{boundaryNote}{unfinishedNote}",
+        "secondaryNoteTemplate": "同时，{secondaryNames}也有较明显的迹象。",
+        "boundaryNote": "不过它与下一项比较接近，更适合作为观察方向，而不是固定标签。",
+        "unfinishedNote": "答案中也出现了对未完成部分的在意。"
       }
     },
     "mainResultStory": {
@@ -3197,7 +3211,7 @@
       },
       "fallback": {
         "titleTemplate": "{relationshipTitle}",
-        "leadTemplate": "{relationshipSummary}影响你判断的，主要是双方平时是否回应彼此、能否一起面对问题，以及说过的话后来有没有做到。"
+        "leadTemplate": "{relationshipSummary}五类影响因素都没有明显突出，因此这次不把微弱差异当成标签；更适合回到双方平时是否回应彼此、能否一起面对问题，以及说过的话后来有没有做到。"
       },
       "default": {
         "titleTemplate": "{relationshipTitle}",
@@ -3214,7 +3228,7 @@
           {"questions": {"Q13": ["A"], "Q15": ["B"], "Q19": ["A"], "Q21": ["A"]}, "minimum": 2}
         ],
         "title": "你们有解决问题的能力，只是有些话没有及时说出来",
-        "body": "几道答案放在一起看，出现了一个反差：只要你把不舒服说出来，你们通常能听完对方的想法，也愿意把各自的感受说清楚，然后一起商量，之后也会有所改变。可有些时候，你会先看看对方当时的态度，等一个更合适的时机；等事情慢慢过去，又觉得没有必要再提。这说明，你们并不是解决不了问题，而是有些在意还没来得及说清，就被暂时放下了。这样可以避开当下的争执，但对方也可能一直不知道，你其实仍然介意什么。",
+        "body": "几道答案放在一起看，出现了一个反差：有些分歧或需要进入对话后，你们能继续商量；但另一些不舒服会被推迟、淡化，或在气氛恢复后不再提。真正的卡点不一定是完全谈不了，而可能是有些事还没进入一次足够具体的对话。这样能避开当下的冲突，却也可能让同一个问题以后再次出现。",
         "signals": [
           "当时没有说出口的事，等双方状态合适后，有没有重新谈起",
           "想想某次不愉快后来没再提，是因为已经说开了，还是因为你决定把它放下"
@@ -3229,11 +3243,11 @@
         "stages": ["ongoing"],
         "priority": 90,
         "evidenceGroups": [
-          {"questions": {"Q16": ["B"], "Q18": ["A", "B", "D"]}, "minimum": 1},
+          {"questions": {"Q16": ["B"]}, "minimum": 1},
           {"questions": {"Q07": ["A", "B"], "Q14": ["C"], "Q24": ["C"]}, "minimum": 1}
         ],
         "title": "你的生活还在继续，但有些安排已经开始为关系让路",
-        "body": "另一组答案显示，你的日常大体稳定，朋友和爱好也仍在给你支持。不过，从更长时间来看，你有一些安排已经越来越围着对方改变。当你担心对方不像以前那么重视你时，也可能会先改变自己，希望重新得到对方的关注。关系带来的累，不一定会让生活完全失控；它也可能藏在一次次选择里——你先考虑“这样会不会影响关系”，然后才想到“我自己愿不愿意”。",
+        "body": "另一组答案显示，你仍有一些关系之外的支持；但你也明确选择了“朋友、爱好或个人安排越来越围着对方改变”。这两个事实可以同时存在：生活没有完全停下，不等于关系没有占用空间。比起笼统问自己累不累，更值得看的是，哪些具体安排已经改变，以及这些改变是不是你真心愿意的。",
         "signals": [
           "最近是否常为了这段关系，取消和朋友的约定、放下喜欢的事，或改变原本的个人安排",
           "改变自己的计划时，你是真心愿意，还是主要担心不配合会影响关系"
@@ -3245,7 +3259,7 @@
       },
       {
         "id": "conflict_self_silencing",
-        "stages": ["ongoing", "ended"],
+        "stages": ["ongoing"],
         "priority": 80,
         "evidenceGroups": [
           {"questions": {"Q02": ["C"], "Q05": ["D"], "Q13": ["B", "C", "D"], "Q27": ["C", "D"]}, "minimum": 2}
@@ -3260,6 +3274,24 @@
           "先写下一次没有说完的话，只保留事实、感受和一个具体希望",
           "从风险较低的小分歧开始表达，并观察对方是否愿意听完和共同调整"
         ]
+      },
+      {
+        "id": "ended_unresolved_conversation",
+        "stages": ["ended"],
+        "priority": 85,
+        "evidenceGroups": [
+          {"questions": {"Q02": ["A", "C", "D"], "Q05": ["C", "D"], "Q22": ["A", "B", "C"]}, "minimum": 2}
+        ],
+        "title": "让你反复回想的，可能也有一些没有谈完的部分",
+        "body": "至少两处回答指向了相似的经历：有些分歧没有真正说完，或你的真实需要没有完整进入对话。关系结束以后，人容易把“当时没说清”误当成“关系还应该继续”。这两件事并不相同；你可以承认遗憾存在，同时单独判断过去的相处是否适合自己。",
+        "signals": [
+          "你更想念的是这个人，还是更想补上一个迟到的解释或回答",
+          "即使永远得不到对方的回应，你最想替当时的自己说清哪一句话"
+        ],
+        "actions": [
+          "写下两列：当时没有说完的话；现在已经知道的事实",
+          "把想得到的答案写成一句问题，再写一句“不依赖对方回应，我仍能确认的是……”"
+        ]
       }
     ],
     "relationshipLevels": {
@@ -3268,12 +3300,24 @@
       "attention": "较需要留意",
       "midpoint": 50
     },
-    "resultDetails": {
+      "resultDetails": {
       "relationshipIntro": "这里不显示容易被误解为准确率的数字，只呈现这次答案里各方面的相对情况。",
-      "sustainabilityLabel": "目前这些好的相处方式能不能一直保持",
+      "sustainabilityLabel": "稳定、修复与自我保留的综合情况",
+      "sustainabilityExplanation": "这不是第五个独立维度，而是把上面的三项合在一起看，用来观察好的相处是否较容易持续，不是对未来的预测。",
+      "evidenceIntro": "以下只引用你实际选择的答案，不补写题目之外的经历。",
+      "relationshipEvidenceTitle": "这份关系判断来自哪些回答",
+      "sourceEvidenceTitle": "为什么会得到这个影响因素",
+      "practicalContextNote": "你的答案还提到住处、经济、照护或共同安排等现实牵连。它不会被算成“害怕失去”，但值得和情绪上的舍不得分开处理。",
+      "boundaryNote": "这次答案靠近相邻结果的分界，更适合作为观察方向，而不是给关系贴死标签。",
+      "actionSafetyCondition": {
+        "ongoing": "只在沟通本身安全、且你愿意尝试时使用这些建议；如果表达会带来威胁、报复或强控制，优先保护自己并寻求支持。",
+        "ended": "以下建议只用于整理自己的经历；如果某一步让你明显不适，可以停下来。"
+      },
+      "commentPrompt": "如果你愿意分享，可以只说“哪一句最像我”或“哪一句不符合”；不需要公开具体关系细节。",
+      "sharePrivacyNote": "复制的分享文字只包含结果标题和一句话，不会带出你的具体答案。",
       "actionFootnote": {
         "ongoing": "不必只凭这份结果给关系下最终结论。可以留意下一次你需要对方支持、双方出现分歧，或有人需要改变原有计划时，彼此实际怎么回应。",
-        "ended": "这些建议用于帮助你回看过去、理解自己，不需要重新联系对方，也不替你决定是否复合。"
+        "ended": "完成这些步骤不需要重新联系对方，也不要求你立刻得出一个最终结论。"
       },
       "endedNotice": "这部分只回看你们过去怎样相处，不评价现在的关系状态，也不替你决定是否复合。",
       "disclaimer": "本测试为自我觉察与娱乐内容，不替你决定分手或复合。结果只反映当前作答，也不能覆盖题目之外的处境。",
@@ -3324,12 +3368,12 @@
           "Q19": "A",
           "Q20": "D",
           "Q21": "A",
-          "Q22": "C",
+          "Q22": "D",
           "Q23": "A",
           "Q24": "C",
           "Q25": "A",
           "Q26": "A",
-          "Q27": "C",
+          "Q27": "B",
           "Q28": "C"
         }
       },
@@ -3356,12 +3400,12 @@
           "Q14": "C",
           "Q15": "A",
           "Q16": "A",
-          "Q17": "B",
+          "Q17": "C",
           "Q18": "B",
           "Q19": "A",
           "Q20": "D",
           "Q21": "A",
-          "Q22": "C",
+          "Q22": "D",
           "Q23": "B",
           "Q24": "C",
           "Q25": "B",
@@ -3390,15 +3434,15 @@
           "Q11": "C",
           "Q12": "A",
           "Q13": "C",
-          "Q14": "D",
+          "Q14": "C",
           "Q15": "C",
           "Q16": "C",
-          "Q17": "C",
+          "Q17": "B",
           "Q18": "A",
           "Q19": "D",
           "Q20": "C",
           "Q21": "C",
-          "Q22": "A",
+          "Q22": "B",
           "Q23": "C",
           "Q24": "C",
           "Q25": "C",
@@ -3427,7 +3471,7 @@
           "Q11": "D",
           "Q12": "D",
           "Q13": "B",
-          "Q14": "D",
+          "Q14": "C",
           "Q15": "D",
           "Q16": "B",
           "Q17": "D",
@@ -3464,10 +3508,10 @@
           "Q11": "B",
           "Q12": "C",
           "Q13": "B",
-          "Q14": "D",
+          "Q14": "C",
           "Q15": "B",
           "Q16": "B",
-          "Q17": "C",
+          "Q17": "B",
           "Q18": "C",
           "Q19": "C",
           "Q20": "B",
@@ -3501,7 +3545,7 @@
           "Q11": "A",
           "Q12": "C",
           "Q13": "B",
-          "Q14": "D",
+          "Q14": "B",
           "Q15": "B",
           "Q16": "B",
           "Q17": "A",
@@ -3509,7 +3553,7 @@
           "Q19": "B",
           "Q20": "B",
           "Q21": "D",
-          "Q22": "B",
+          "Q22": "A",
           "Q23": "B",
           "Q24": "B",
           "Q25": "A",
@@ -3546,7 +3590,7 @@
           "Q19": "D",
           "Q20": "B",
           "Q21": "A",
-          "Q22": "D",
+          "Q22": "A",
           "Q23": "A",
           "Q24": "D",
           "Q25": "A",
@@ -3580,7 +3624,7 @@
           "Q18": "A",
           "Q19": "A",
           "Q21": "A",
-          "Q22": "C",
+          "Q22": "D",
           "Q23": "A",
           "Q24": "C",
           "Q25": "A",
@@ -3617,7 +3661,7 @@
           "Q19": "C",
           "Q20": "D",
           "Q21": "C",
-          "Q22": "C",
+          "Q22": "D",
           "Q23": "A",
           "Q24": "C",
           "Q25": "C",
@@ -3648,13 +3692,13 @@
           "Q13": "D",
           "Q14": "C",
           "Q15": "A",
-          "Q16": "B",
+          "Q16": "A",
           "Q17": "C",
           "Q18": "B",
           "Q19": "A",
           "Q20": "D",
           "Q21": "D",
-          "Q22": "C",
+          "Q22": "D",
           "Q23": "A",
           "Q24": "A",
           "Q25": "A",
@@ -3683,7 +3727,7 @@
           "Q11": "B",
           "Q12": "C",
           "Q13": "C",
-          "Q14": "D",
+          "Q14": "C",
           "Q15": "C",
           "Q16": "A",
           "Q17": "C",
@@ -3691,7 +3735,7 @@
           "Q19": "D",
           "Q20": "A",
           "Q21": "A",
-          "Q22": "C",
+          "Q22": "D",
           "Q23": "B",
           "Q24": "C",
           "Q25": "C",
@@ -3728,7 +3772,7 @@
           "Q19": "NA",
           "Q20": "NA",
           "Q21": "A",
-          "Q22": "B",
+          "Q22": "NA",
           "Q23": "C",
           "Q24": "NA",
           "Q25": "NA",
