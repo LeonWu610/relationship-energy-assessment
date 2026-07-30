@@ -164,7 +164,7 @@ class ScoringTests(unittest.TestCase):
         presentation=DATA["resultPresentation"]
         self.assertGreater(presentation["relationshipStory"]["nourishingAverageMin"],presentation["relationshipStory"]["supportiveAverageMin"])
         self.assertEqual(DATA["dimensions"]["relationship"]["repair"]["label"],"产生矛盾后能否一起解决")
-        self.assertEqual(DATA["dimensions"]["relationship"]["selfPreservation"]["label"],"你能否说出自己的感受和需要，也能按自己的节奏生活")
+        self.assertEqual(DATA["dimensions"]["relationship"]["selfPreservation"]["label"],"你能否说出自己的感受和需要，按自己的节奏生活")
         serialized=json.dumps(presentation,ensure_ascii=False)
         for phrase in ("一处需要继续观察","没有某一种感受明显左右你的判断","保留自己","符合你的需要","闹矛盾后能否一起解决","局部收缩","延后表达","表面恢复平静","现实依据","维持原有生活","都没有哪一项格外强烈","你们不是谈了也没用","有些不舒服并没有走到这一步","重新相处得不错","原本重要的朋友、爱好或个人安排，反复因为关系被取消","这段关系给你的，安心多过疲惫","如果要多看一个方面","那件事后来没再提","那件事没有再被提起","明确的返回时间"):
             self.assertNotIn(phrase,serialized)

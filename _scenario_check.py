@@ -175,9 +175,9 @@ def run_checks() -> list[str]:
     result = score_answers(DATA, real["answers"], real["stage"])
     relationship = relationship_story(result)
     insight_ids = [rule["id"] for rule in select_insights(result)]
-    if relationship["key"] != "supportive" or relationship["headline"] != "这段关系，确实给了你很多安心":
-        issues.append("真实结果未落入‘这段关系，确实给了你很多安心’")
-    if relationship["title"] != "这段关系给你的安心，多过疲惫":
+    if relationship["key"] != "supportive" or relationship["headline"] != "这段关系带给你的滋养，多过消耗":
+        issues.append("真实结果未落入‘这段关系带给你的滋养，多过消耗’")
+    if relationship["title"] != "这段关系给你的滋养，多过消耗":
         issues.append("真实结果的分析结论断句不正确")
     if "repair_entry_gap" not in insight_ids:
         issues.append("真实结果未识别‘问题进入对话前的卡点’")

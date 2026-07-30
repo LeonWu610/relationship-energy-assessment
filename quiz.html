@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>这段关系，正在滋养你，还是消耗你？</title>
+<title>这段关系，是在滋养你，还是在消耗你？</title>
 <style>
 :root {
   --bg: #faf8f5;
@@ -159,6 +159,10 @@ body {
   border: 1.5px solid var(--border);
   border-radius: 12px;
   padding: .9rem 1.1rem;
+  display: grid;
+  grid-template-columns: 1.4rem minmax(0, 1fr);
+  align-items: center;
+  column-gap: .55rem;
   cursor: pointer;
   transition: all .2s;
   font-size: .95rem;
@@ -170,31 +174,21 @@ body {
   border-color: var(--accent);
   background: var(--accent-light);
 }
-.q-option.selected::before {
-  content: '';
-  position: absolute;
-  left: .6rem;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--accent);
-}
 .q-option .opt-letter {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 1.4rem;
   height: 1.4rem;
-  line-height: 1.4rem;
   text-align: center;
   border-radius: 50%;
   background: var(--border);
   color: var(--text-secondary);
   font-size: .75rem;
   font-weight: 600;
-  margin-right: .5rem;
   flex-shrink: 0;
 }
+.q-option .opt-text { min-width: 0; }
 .q-option.selected .opt-letter {
   background: var(--accent);
   color: #fff;
@@ -290,20 +284,6 @@ body {
   margin-bottom: .35rem;
 }
 .story-panel p { color: var(--text-secondary); font-size: .86rem; }
-.evidence-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .5rem;
-  margin-top: .8rem;
-}
-.evidence-chip {
-  border: 1px solid var(--border);
-  border-radius: 99px;
-  padding: .32rem .7rem;
-  font-size: .78rem;
-  color: var(--text-secondary);
-  background: #fff;
-}
 .result-boundary {
   border-top: 1px solid var(--border);
   margin-top: .9rem;
@@ -335,26 +315,56 @@ body {
   padding-left: 1.2rem;
   margin: .3rem 0;
 }
+.insight-block {
+  padding: 1rem 0;
+}
+.insight-block:first-of-type { padding-top: .35rem; }
+.insight-block + .insight-block {
+  margin-top: .5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+}
+.insight-block strong {
+  display: block;
+  margin-bottom: .7rem;
+  color: var(--text);
+  font-size: 1.02rem;
+  line-height: 1.6;
+}
+.insight-block p {
+  color: var(--text-secondary);
+  line-height: 1.9;
+}
 
 /* dimension bars */
+.dimension-list { display: grid; gap: 1rem; }
 .dim-row {
-  display: flex;
-  align-items: center;
-  margin-bottom: .6rem;
+  padding: .15rem 0;
   font-size: .88rem;
 }
+.dim-row-summary {
+  margin-top: .15rem;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--border);
+}
+.dim-meta {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
 .dim-label {
-  width: 100px;
-  flex-shrink: 0;
+  min-width: 0;
   color: var(--text-secondary);
+  line-height: 1.55;
 }
 .dim-bar-wrap {
-  flex: 1;
-  height: 10px;
+  width: 100%;
+  height: 9px;
   background: var(--border);
   border-radius: 5px;
   overflow: hidden;
-  margin: 0 .6rem;
+  margin-top: .5rem;
 }
 .dim-bar {
   height: 100%;
@@ -362,10 +372,10 @@ body {
   transition: width .6s ease;
 }
 .dim-val {
-  width: 36px;
-  text-align: right;
+  flex: 0 0 auto;
   font-weight: 600;
   color: var(--primary);
+  white-space: nowrap;
 }
 
 /* source radar placeholder */
@@ -437,6 +447,66 @@ body {
 }
 .fade-up { animation: fadeUp .4s ease both; }
 
+#resultTransition {
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+}
+.reflection-loader {
+  width: min(100%, 430px);
+  padding: 2.4rem 1.8rem;
+}
+.reflection-orbit {
+  position: relative;
+  width: 104px;
+  height: 104px;
+  margin: 0 auto 1.7rem;
+}
+.reflection-orbit::before,
+.reflection-orbit::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(189,125,98,.42);
+  border-radius: 54% 46% 58% 42%;
+  animation: reflectionTurn 2.4s linear infinite;
+}
+.reflection-orbit::after {
+  inset: 13px;
+  border-color: rgba(93,72,101,.32);
+  animation-direction: reverse;
+  animation-duration: 1.9s;
+}
+.reflection-core {
+  position: absolute;
+  inset: 36px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, var(--accent), var(--primary-light));
+  box-shadow: 0 0 0 11px rgba(255,255,255,.48), 0 12px 28px rgba(73,51,77,.16);
+  animation: reflectionPulse 1.25s ease-in-out infinite alternate;
+}
+.transition-eyebrow {
+  margin-bottom: .65rem;
+  color: var(--accent);
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+}
+.reflection-loader h2 {
+  color: var(--primary);
+  font-family: "Songti SC", STSong, serif;
+  font-size: 1.45rem;
+  line-height: 1.6;
+}
+.transition-copy {
+  margin-top: .75rem;
+  color: var(--text-secondary);
+  font-size: .9rem;
+  line-height: 1.75;
+}
+@keyframes reflectionTurn { to { transform: rotate(360deg); } }
+@keyframes reflectionPulse { to { transform: scale(.82); opacity: .72; } }
+
 /* ---- Responsive ---- */
 @media (max-width: 480px) {
   #intro h1 { font-size: 1.3rem; }
@@ -446,8 +516,7 @@ body {
   #results { padding: 1rem; }
   .result-header { padding: 1.35rem; }
   .result-header .result-type { font-size: 1.4rem; }
-  .dim-row { align-items: flex-start; }
-  .dim-label { width: 82px; }
+  .dim-label { font-size: .9rem; }
   #intro { padding: 1.2rem; justify-content: flex-start; }
   .preset-section { padding: 1rem; }
   .preset-grid { grid-template-columns: 1fr; }
@@ -551,6 +620,7 @@ body::before {
 .experience-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin: 15px 2px 22px; }
 .experience-item { padding: 12px 8px; border: 1px solid rgba(255,255,255,.75); border-radius: 16px; background: rgba(255,253,249,.62); color: var(--text-secondary); font-size: .72rem; text-align: center; backdrop-filter: blur(8px); }
 .experience-item strong { display: block; margin-bottom: 2px; color: var(--primary); font-family: Georgia, serif; font-size: 1rem; }
+.experience-item span { display: block; line-height: 1.35; }
 .intro-panel { padding: 26px 24px; border: 1px solid rgba(255,255,255,.76); border-radius: 28px; background: rgba(255,253,249,.76); box-shadow: var(--shadow); backdrop-filter: blur(15px); text-align: left; }
 .intro-panel-title { margin-bottom: 15px; color: var(--primary); font-size: 1.05rem; font-weight: 700; }
 .stage-select { gap: 12px; margin-bottom: 20px; }
@@ -561,6 +631,24 @@ body::before {
 .stage-card .icon svg { width: 100%; height: 100%; }
 .stage-card .label { color: var(--primary); font-size: 1rem; }
 .stage-card .desc { margin-top: 5px; line-height: 1.5; }
+.answer-guidance {
+  margin: 0 0 20px;
+  padding: 14px 15px;
+  border: 1px solid rgba(189,125,98,.2);
+  border-radius: 16px;
+  background: rgba(251,239,231,.72);
+}
+.answer-guidance strong {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--primary);
+  font-size: .86rem;
+}
+.answer-guidance p {
+  color: var(--text-secondary);
+  font-size: .78rem;
+  line-height: 1.7;
+}
 .btn { min-height: 50px; padding: .78rem 1.8rem; letter-spacing: .03em; }
 .btn-primary { background: linear-gradient(135deg, #4b3853, #715b78); box-shadow: 0 12px 24px rgba(69,51,76,.18); }
 .btn-primary:hover { background: linear-gradient(135deg, #3f2f46, #604d67); transform: translateY(-1px); }
@@ -580,6 +668,7 @@ body::before {
 .result-header { overflow: hidden; padding: 28px; border-radius: 28px; background: linear-gradient(145deg, #fffdfa 0%, #f0ddd1 100%); box-shadow: var(--shadow); }
 .result-header .result-type { font-family: "Songti SC", STSong, serif; font-size: 1.85rem; }
 .result-card { padding: 24px; border: 1px solid rgba(255,255,255,.8); border-radius: 24px; background: rgba(255,253,249,.9); box-shadow: var(--shadow); }
+.results-wrap > .fade-up { animation-delay: var(--delay, 0ms); }
 .preset-section { display: none; }
 .preset-section.is-visible { display: block; }
 @media (max-width: 480px) {
@@ -594,9 +683,19 @@ body::before {
   .experience-item { padding: 10px 4px; }
   .question-area { padding: 32px 17px 24px; }
   .q-stem { font-size: 1.16rem; }
+  .q-option { align-items: start; }
+  .q-option .opt-letter { margin-top: .12rem; }
   .nav-row { gap: 8px; }
   .nav-row .btn { min-height: 46px; padding: .65rem 1rem; }
   .nav-row .counter { font-size: .72rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
 }
 </style>
 </head>
@@ -638,14 +737,14 @@ body::before {
       </svg>
       <div class="hero-copy">
         <p class="hero-eyebrow">RELATIONSHIP ENERGY</p>
-        <h1>这段关系，正在滋养你，还是消耗你？</h1>
+        <h1>这段关系，是在滋养你，还是在消耗你？</h1>
         <p class="subtitle">看见关系真实带给你的感受，也看见自己舍不得的，究竟是什么。</p>
       </div>
     </section>
     <div class="experience-strip" aria-label="测试信息">
-      <div class="experience-item"><strong>28</strong>道情境题</div>
-      <div class="experience-item"><strong>5–8</strong>分钟完成</div>
-      <div class="experience-item"><strong>2</strong>个观察角度</div>
+      <div class="experience-item"><strong id="experienceQuestionCount">25</strong><span id="experienceQuestionLabel">道适用情境题</span></div>
+      <div class="experience-item"><strong>5–8</strong><span>分钟完成</span></div>
+      <div class="experience-item"><strong>匿名</strong><span>无需填写个人信息</span></div>
     </div>
     <section class="intro-panel">
       <h2 class="intro-panel-title">先告诉我们，你们现在处在哪个阶段</h2>
@@ -661,6 +760,10 @@ body::before {
           <div class="desc">想回看过去，也想理解为何仍难放下</div>
         </div>
       </div>
+      <div class="answer-guidance">
+        <strong>遇到没有原样发生过的场景</strong>
+        <p>请结合你们平时最接近的真实相处来选，不必猜一个理想答案；确实没有依据判断时，可以选择“不确定 / 不适用”。</p>
+      </div>
       <div class="intro-actions">
         <button class="btn btn-primary" id="startBtn" disabled>开始我的关系观察</button>
         <button class="btn btn-outline" id="importBtn" disabled>恢复上次的作答</button>
@@ -673,7 +776,7 @@ body::before {
         <div id="presetGroups"></div>
       </section>
     </section>
-    <p class="intro-note">请按真实感受作答，没有标准答案。确实不符合当前情况时，可以选择“不确定 / 不适用”。本测试用于自我觉察与娱乐，不替你决定分手或复合。</p>
+    <p class="intro-note">请按真实感受作答，没有标准答案。本测试用于自我觉察与娱乐，不替你决定分手或复合。</p>
   </div>
 </div>
 
@@ -681,6 +784,16 @@ body::before {
 <div id="quiz" class="screen">
   <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
   <div class="question-area" id="questionArea"></div>
+</div>
+
+<!-- ======== RESULT TRANSITION ======== -->
+<div id="resultTransition" class="screen" aria-live="polite">
+  <div class="reflection-loader">
+    <div class="reflection-orbit" aria-hidden="true"><span class="reflection-core"></span></div>
+    <p class="transition-eyebrow">你已经认真走完了这些问题</p>
+    <h2>正在把散落的感受，整理成更清楚的关系线索</h2>
+    <p class="transition-copy">稍等一下，这份结果会从你的每一次选择里慢慢浮现。</p>
+  </div>
 </div>
 
 <!-- ======== RESULTS ======== -->
@@ -897,11 +1010,24 @@ let selectedStage = null;
 let currentQ = 0;
 let userAnswers = {};
 let quizQuestions = [];
+let resultTransitionTimer = null;
 
 // ---- Intro ----
 function stageQuestionCount(stage) {
   if (!requireDataReady()) return 0;
   return QUIZ_DATA.questions.filter(q => q.scene === 'all' || q.scene === stage).length;
+}
+
+function updateIntroQuestionCount(stage) {
+  const count = document.getElementById('experienceQuestionCount');
+  const label = document.getElementById('experienceQuestionLabel');
+  if (!stage || !dataReady) {
+    count.textContent = '—';
+    label.textContent = '选择阶段后显示题数';
+    return;
+  }
+  count.textContent = stageQuestionCount(stage);
+  label.textContent = '道适用情境题';
 }
 
 function setInteractiveReady(ready) {
@@ -963,6 +1089,7 @@ async function initializeQuiz() {
     renderPresets();
     status.classList.remove('error');
     status.textContent = '';
+    updateIntroQuestionCount(selectedStage);
     document.getElementById('quizMeta').textContent = selectedStage
       ? `本阶段共 ${stageQuestionCount(selectedStage)} 题 · 约 5–8 分钟`
       : '选择关系阶段后，即可开始作答';
@@ -987,6 +1114,7 @@ function selectStage(card) {
     c.setAttribute('aria-pressed', String(selected));
   });
   selectedStage = card.dataset.stage;
+  updateIntroQuestionCount(selectedStage);
   document.getElementById('startBtn').disabled = false;
   document.getElementById('quizMeta').textContent = `本阶段共 ${stageQuestionCount(selectedStage)} 题 · 约 5–8 分钟`;
 }
@@ -1019,6 +1147,16 @@ function showScreen(id) {
   window.scrollTo(0, 0);
 }
 
+function beginResultReveal() {
+  if (resultTransitionTimer) clearTimeout(resultTransitionTimer);
+  showScreen('resultTransition');
+  const delay = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 250 : 1650;
+  resultTransitionTimer = setTimeout(() => {
+    resultTransitionTimer = null;
+    showResults();
+  }, delay);
+}
+
 // ---- Quiz ----
 function renderQuestion() {
   if (!requireDataReady() || !quizQuestions.length) return;
@@ -1031,7 +1169,7 @@ function renderQuestion() {
   q.options.forEach(o => {
     const sel = userAnswers[q.id] === o.id ? ' selected' : '';
     optHtml += `<div class="q-option${sel}" data-qid="${q.id}" data-oid="${o.id}" role="button" tabindex="0" aria-pressed="${userAnswers[q.id] === o.id}">
-      <span class="opt-letter">${o.id}</span>${o.text}
+      <span class="opt-letter">${o.id}</span><span class="opt-text">${o.text}</span>
     </div>`;
   });
 
@@ -1051,11 +1189,25 @@ function renderQuestion() {
     </div>
   `;
 
+  const updateSelection = value => {
+    userAnswers[q.id] = value;
+    area.querySelectorAll('.q-option').forEach(option => {
+      const selected = option.dataset.oid === value;
+      option.classList.toggle('selected', selected);
+      option.setAttribute('aria-pressed', String(selected));
+    });
+    const naOption = area.querySelector('.q-na');
+    const naSelected = value === 'NA';
+    naOption.classList.toggle('active', naSelected);
+    naOption.setAttribute('aria-pressed', String(naSelected));
+    document.getElementById('nextBtn').disabled = false;
+    area.querySelector('.counter').textContent = `${Object.values(userAnswers).filter(answer => answer !== null).length} / ${quizQuestions.length} 已答`;
+  };
+
   // option click
   area.querySelectorAll('.q-option').forEach(el => {
     const chooseOption = () => {
-      userAnswers[el.dataset.qid] = el.dataset.oid;
-      renderQuestion();
+      updateSelection(el.dataset.oid);
     };
     el.addEventListener('click', chooseOption);
     el.addEventListener('keydown', event => {
@@ -1069,8 +1221,7 @@ function renderQuestion() {
   // NA click
   const naOption = area.querySelector('.q-na');
   const chooseNa = () => {
-    userAnswers[naOption.dataset.qid] = 'NA';
-    renderQuestion();
+    updateSelection('NA');
   };
   naOption.addEventListener('click', chooseNa);
   naOption.addEventListener('keydown', event => {
@@ -1090,7 +1241,7 @@ function renderQuestion() {
       currentQ++;
       renderQuestion();
     } else {
-      showResults();
+      beginResultReveal();
     }
   });
 }
@@ -1248,24 +1399,25 @@ function showResults() {
     const levels = QUIZ_DATA.resultPresentation.relationshipLevels;
     const details = QUIZ_DATA.resultPresentation.resultDetails;
     const levelFor = (key, value) => value >= gate[`${key}Min`] ? levels.positive : value >= levels.midpoint ? levels.some : levels.attention;
-    html += `<div class="result-card fade-up"><h3>关系如何运行</h3><p style="color:var(--text-secondary);font-size:.86rem;margin-bottom:.8rem">${details.relationshipIntro}</p>`;
+    html += `<div class="result-card fade-up"><h3>关系如何运行</h3><div class="dimension-list">`;
     for (const k of RELATIONSHIP_KEYS) {
       const v = result.relationship[k];
       html += `<div class="dim-row">
-        <span class="dim-label">${dimLabels[k]}</span>
+        <div class="dim-meta">
+          <span class="dim-label">${dimLabels[k]}</span>
+          <span class="dim-val">${levelFor(k, v)}</span>
+        </div>
         <div class="dim-bar-wrap"><div class="dim-bar" style="width:${v}%;background:${colors[k]}"></div></div>
-        <span class="dim-val" style="width:6.8rem">${levelFor(k, v)}</span>
       </div>`;
     }
     const sustainabilityLevel = result.sustainability >= gate.sustainabilityMin ? levels.positive : result.sustainability >= levels.midpoint ? levels.some : levels.attention;
-    html += `<div class="dim-row" style="margin-top:.5rem;padding-top:.5rem;border-top:1px dashed var(--border)">
-      <span class="dim-label" style="font-weight:600;color:var(--text)">${details.sustainabilityLabel}</span>
+    html += `<div class="dim-row dim-row-summary">
+      <div class="dim-meta">
+        <span class="dim-label" style="font-weight:600;color:var(--text)">${details.sustainabilityLabel}</span>
+        <span class="dim-val">${sustainabilityLevel}</span>
+      </div>
       <div class="dim-bar-wrap"><div class="dim-bar" style="width:${result.sustainability}%;background:var(--primary)"></div></div>
-      <span class="dim-val" style="width:6.8rem">${sustainabilityLevel}</span>
-    </div>
-    <div class="evidence-list">
-      ${RELATIONSHIP_KEYS.map(k => `<span class="evidence-chip">${dimLabels[k]}：${levelFor(k, result.relationship[k])}</span>`).join('')}
-    </div></div>`;
+    </div></div></div>`;
   }
 
   if (insights.length) {
@@ -1306,6 +1458,9 @@ function showResults() {
   </div>`;
 
   wrap.innerHTML = html;
+  Array.from(wrap.children).forEach((element, index) => {
+    if (element.classList.contains('fade-up')) element.style.setProperty('--delay', `${Math.min(index * 70, 420)}ms`);
+  });
   showScreen('results');
   setTimeout(() => {
     document.querySelectorAll('.dim-bar').forEach(bar => {
@@ -1346,13 +1501,17 @@ function importAnswers() {
     if (!Object.keys(imported).length) throw new Error('no answers');
     selectedStage = payload.stage;
     userAnswers = imported;
-    showResults();
+    beginResultReveal();
   } catch (_) {
     alert('无法识别这份答案。请确认复制了完整内容后再试。');
   }
 }
 
 function restart() {
+  if (resultTransitionTimer) {
+    clearTimeout(resultTransitionTimer);
+    resultTransitionTimer = null;
+  }
   selectedStage = null;
   currentQ = 0;
   userAnswers = {};
@@ -1360,6 +1519,7 @@ function restart() {
     c.classList.remove('selected');
     c.setAttribute('aria-pressed', 'false');
   });
+  updateIntroQuestionCount(null);
   document.getElementById('quizMeta').textContent = '请选择关系阶段后查看题数';
   setInteractiveReady(true);
   showScreen('intro');
